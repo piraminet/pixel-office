@@ -6,6 +6,9 @@
     <title>Dashboard Oficina Pixel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+            --office-bg-url: url('assets/oficina-placeholder.png');
+        }
         body { background: #1a1a2e; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-x: hidden; }
         .pixel-art {
             image-rendering: pixelated;
@@ -29,7 +32,7 @@
             top: 0; left: 0; right: 0; bottom: 0;
             pointer-events: none;
             opacity: 0.4;
-            background-image: url('assets/oficina.png');
+            background-image: var(--office-bg-url);
             background-size: 100% 100%;
             z-index: 0;
             image-rendering: pixelated;
@@ -152,7 +155,7 @@
                         
                         <!-- Contenedor del minimapa -->
                         <div class="relative mx-auto border-2 border-slate-600 rounded overflow-hidden shadow-inner bg-slate-900" style="width: 320px; height: 400px; cursor: crosshair;" onclick="handleMinimapClick(event)" id="minimapWrap">
-                            <img src="assets/oficina.png" class="w-full h-full object-cover pixel-art opacity-60" draggable="false">
+                            <img id="officePreview" src="assets/oficina-placeholder.png" class="w-full h-full object-cover pixel-art opacity-60" draggable="false" alt="Office layout preview">
                             <div id="markersContainer" class="absolute inset-0 pointer-events-none"></div>
                         </div>
                     </div>
@@ -882,5 +885,20 @@
         // START
         initApp();
     </script>
+    <script>
+        (function() {
+            const officeAssetPath = 'assets/oficina.png';
+            const previewEl = document.getElementById('officePreview');
+            const probe = new Image();
+            probe.onload = () => {
+                document.documentElement.style.setProperty('--office-bg-url', `url('${officeAssetPath}')`);
+                if (previewEl) {
+                    previewEl.src = officeAssetPath;
+                }
+            };
+            probe.src = officeAssetPath;
+        })();
+    </script>
+
 </body>
 </html>

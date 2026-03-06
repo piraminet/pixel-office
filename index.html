@@ -288,6 +288,7 @@
                 const NUM_CHARS = 6;
                 // Solo background + chars (7 imágenes)
                 const totalImages = 1 + NUM_CHARS;
+                let triedFallbackBackground = false;
                 
                 const onLoad = () => {
                     loadCount++;
@@ -298,14 +299,21 @@
                     }
                 };
 
-                // Solo cargar oficina.png (fondo completo)
+                // Load user-provided office background, fallback to placeholder if missing
                 this.sprites.background = new Image();
                 this.sprites.background.crossOrigin = 'anonymous';
-                this.sprites.background.src = 'assets/oficina.png';
                 this.sprites.background.onload = onLoad;
                 this.sprites.background.onerror = () => {
-                    console.error('Failed to load assets/oficina.png');
+                    if (triedFallbackBackground) {
+                        console.error('Failed to load placeholder office background: assets/oficina-placeholder.png');
+                        onLoad();
+                        return;
+                    }
+                    triedFallbackBackground = true;
+                    console.warn('assets/oficina.png not found. Using placeholder background instead.');
+                    this.sprites.background.src = 'assets/oficina-placeholder.png';
                 };
+                this.sprites.background.src = 'assets/oficina.png';
 
                 // Cargar personajes
                 this.sprites.chars = [];

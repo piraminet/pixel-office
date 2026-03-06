@@ -57,6 +57,8 @@ services/pixel
    cp sample-data/map.sample.json data/map.json
    ```
 
+   > Optional: if you own Donarg's Office Interior Tileset, drop the exported PNG as `assets/oficina.png` (gitignored). Pixel Office will automatically swap the placeholder background for your art.
+
 3. **Run the server**
    ```bash
    npm start
@@ -103,8 +105,18 @@ All scripts read `.env`, respect `PIXEL_DATA_DIR` and append to `pixel_actions.j
 
 - `sample-data/*.sample.json` → version-controlled demo config.
 - `data/` → live state (logs, commands, rooms, speech bubbles); auto-created on first run.
-- `assets/` → background (`background.png`), sprite atlas (`characters/`) and editable floorplan (`oficina.png`).
+- `assets/`:
+  - `characters/` → MetroCity Free Topdown Character Pack by [JIK-a-4](https://jik-a-4.itch.io/metrocity-free-topdown-character-pack) (credit/details below).
+  - `oficina-placeholder.png` → built-in placeholder grid. If you purchase Donarg's Office Interior Tileset drop your PNG as `assets/oficina.png` (gitignored) and the app will pick it up automatically in the viewer + dashboard.
 - `docs/media/` → screenshots used here; keep 1920px width when updating marketing shots.
+
+## 🎨 Credits & external assets
+
+- Inspired by [pixel-agents](https://github.com/pablodelucca/pixel-agents) by Pablo Delucca — this project reuses the idea of a pixelated OpenClaw office and adapts it to this stack.
+- Character sprites come from the [MetroCity Free Topdown Character Pack](https://jik-a-4.itch.io/metrocity-free-topdown-character-pack) by JIK-a-4. Review the itch.io license before redistributing; attribution is required.
+- The office background was built with [Office Interior Tileset (16x16)](https://donarg.itch.io/officetileset) by Donarg (USD $2). This is the only part of Pixel Office that is not freely available; the tileset is **not** included here because of its license. To use it locally, purchase the pack, export your layout as `services/pixel/assets/oficina.png`, and Pixel Office will automatically pick it up (the file is gitignored).
+
+See [CREDITS.md](CREDITS.md) for a handy table you can keep updated.
 
 ## 📦 Deploy notes
 
@@ -125,3 +137,4 @@ All scripts read `.env`, respect `PIXEL_DATA_DIR` and append to `pixel_actions.j
 ## 🇪🇸 Resumen en español
 
 Pixel Office es un tablero retro para ver a tus agentes como personajes pixelados, editar habitaciones y colisiones desde un dashboard con contraseña y automatizar eventos mediante scripts. Sigue los pasos de "Quick start" (copiar `.env`, instalar dependencias, poblar `data/` desde `sample-data/` y arrancar `npm start`). Toda la API y los scripts están documentados arriba; solo recuerda que la carpeta `data/` queda fuera del repositorio para no filtrar estados reales.
+Sprites: MetroCity Free Topdown Character Pack (JIK-a-4). Tileset: Office Interior Tileset de Donarg (no incluido; cópialo como `assets/oficina.png` si lo compras).
