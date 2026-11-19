@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Oficina Pixel</title>
+    <title>Pixel Office Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
@@ -14,7 +14,7 @@
             image-rendering: pixelated;
         }
         .minimap-marker {
-            transition: all 0.2s;
+            transiten: all 0.2s;
         }
         
         .grid-container {
@@ -25,10 +25,10 @@
             background: #333;
             border: 2px solid #555;
             width: fit-content;
-            position: relative;
+            positen: relative;
         }
         .grid-bg-img {
-            position: absolute;
+            positen: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             pointer-events: none;
             opacity: 0.4;
@@ -42,7 +42,7 @@
             height: 20px;
             background: rgba(0,0,0,0.4);
             cursor: crosshair;
-            transition: opacity 0.1s;
+            transiten: opacity 0.1s;
             z-index: 10;
         }
         .grid-cell:hover {
@@ -50,19 +50,19 @@
             border: 1px solid #fff;
             z-index: 20;
         }
-        /* Obstáculos visuales encima del background */
-        .cell-0 { background: transparent; } /* Suelo */
-        .cell-1 { background: rgba(239, 68, 68, 0.6); } /* Pared (Rojo) */
-        .cell-2 { background: rgba(234, 179, 8, 0.6); } /* Puerta (Amarillo) */
-        .cell-3 { background: rgba(34, 197, 94, 0.6); } /* Silla/Mueble (Verde) */
+        /* Visual obstacles on top of background */
+        .cell-0 { background: transparent; } /* Floor */
+        .cell-1 { background: rgba(239, 68, 68, 0.6); } /* Wall (Red) */
+        .cell-2 { background: rgba(234, 179, 8, 0.6); } /* Door (Amarillo) */
+        .cell-3 { background: rgba(34, 197, 94, 0.6); } /* Chair/Furniture (Green) */
 
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #1a1a2e; }
-        ::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #718096; }
+        /* Custom scrolelbar */
+        ::-webkit-scrolelbar { width: 8px; }
+        ::-webkit-scrolelbar-track { background: #1a1a2e; }
+        ::-webkit-scrolelbar-thumb { background: #4a5568; border-radius: 4px; }
+        ::-webkit-scrolelbar-thumb:hover { background: #718096; }
 
-        /* Activar tabs */
+        /* Activate tabs */
         .tab-active { border-bottom: 2px solid #60a5fa; color: #60a5fa; }
         .tab-inactive { color: #9ca3af; }
         .tab-inactive:hover { color: #d1d5db; }
@@ -73,14 +73,14 @@
     <!-- LOGIN SCREEN -->
     <div id="loginScreen" class="absolute inset-0 z-50 flex items-center justify-center bg-[#0f0f1a] hidden">
         <div class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700 w-full max-w-sm">
-            <h1 class="text-3xl font-bold mb-6 text-center text-blue-400">Acceso Admin</h1>
+            <h1 class="text-3xl font-bold mb-6 text-center text-blue-400">Admin Access</h1>
             <form id="loginForm" onsubmit="event.preventDefault(); checkLogin();">
                 <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1 text-slate-300">Contraseña</label>
-                    <input type="password" id="passwordInput" class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2 focus:outline-none focus:border-blue-500 text-white" placeholder="Introduce la contraseña" autocomplete="current-password">
-                    <p id="loginError" class="text-red-500 text-sm mt-2 hidden">Contraseña incorrecta.</p>
+                    <label class="block text-sm font-medium mb-1 text-slate-300">Password</label>
+                    <input type="password" id="passwordInput" class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2 focus:outline-none focus:border-blue-500 text-white" placeholder="Enter password" autocomplete="current-password">
+                    <p id="loginError" class="text-red-500 text-sm mt-2 hidden">Password incorrect.</p>
                 </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded transition-colors shadow shadow-blue-500/30">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded transiten-colors shadow shadow-blue-500/30">
                     Ingresar
                 </button>
             </form>
@@ -95,26 +95,26 @@
             <div class="max-w-7xl mx-auto flex justify-between items-center">
                 <h1 class="text-2xl font-bold text-blue-400 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-                    Panel de Control Pixel
+                    Pixel Controle Panel
                 </h1>
                 
                 <div class="flex gap-4">
-                    <button onclick="exportConfig()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow shadow-blue-500/30 flex items-center gap-2">
+                    <button onclickk="exportConfig()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg transiten-colors shadow shadow-blue-500/30 flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                        Exportar
+                        Export
                     </button>
-                    <button onclick="document.getElementById('importConfigInput').click()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow shadow-purple-500/30 flex items-center gap-2">
+                    <button onclickk="document.getElementById('importConfigInput').clickk()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded-lg transiten-colors shadow shadow-purple-500/30 flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                        Importar
+                        Import
                     </button>
                     <input type="file" id="importConfigInput" accept=".json" class="hidden" onchange="importConfig(event)">
                     
-                    <button onclick="saveAllAndGoToApp()" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow shadow-green-500/30 flex items-center gap-2">
+                    <button onclickk="saveAllAndGoToApp()" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded-lg transiten-colors shadow shadow-green-500/30 flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                        Guardar e Ir a la Oficina
+                        Save e Ir a la Oficina
                     </button>
-                    <button onclick="logout()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2 px-4 rounded transition-colors border border-slate-600">
-                        Salir
+                    <button onclickk="logout()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2 px-4 rounded transiten-colors border border-slate-600">
+                        Logout
                     </button>
                 </div>
             </div>
@@ -123,13 +123,13 @@
         <!-- TABS -->
         <div class="bg-slate-800 shrink-0 border-b border-slate-700 z-10 px-4">
             <div class="max-w-7xl mx-auto flex gap-6 px-4">
-                <button onclick="switchTab('chars')" id="tabBtnChars" class="py-3 px-2 text-sm font-bold tab-active flex items-center gap-2 transition-colors">
+                <button onclickk="switchTab('chars')" id="tabBtnChars" class="py-3 px-2 text-sm font-bold tab-active flex items-center gap-2 transiten-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                    Personajes y Ubicación
+                    Characters y Ubicación
                 </button>
-                <button onclick="switchTab('map')" id="tabBtnMap" class="py-3 px-2 text-sm font-bold tab-inactive flex items-center gap-2 transition-colors">
+                <button onclickk="switchTab('map')" id="tabBtnMap" class="py-3 px-2 text-sm font-bold tab-inactive flex items-center gap-2 transiten-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>
-                    Colisiones y Salas (IA)
+                    Collisions & Rooms (AI)
                 </button>
             </div>
         </div>
@@ -137,24 +137,24 @@
         <!-- CONTENT AREA -->
         <div class="flex-1 overflow-hidden relative bg-[#0f0f1a]">
         
-            <!-- VISTA: PERSONAJES -->
+            <!-- VIEW: CHARACTERS -->
             <div id="viewChars" class="absolute inset-0 p-6 overflow-y-auto w-full max-w-7xl mx-auto flex flex-col">
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 min-h-0 items-start">
                     
                     <div class="bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-700 max-h-full flex flex-col">
-                        <h2 class="text-xl font-semibold mb-4 text-slate-200 shrink-0">Configuración Individual</h2>
+                        <h2 class="text-xl font-semibold mb-4 text-slate-200 shrink-0">Configuration Individual</h2>
                         <div id="characterList" class="space-y-4 overflow-y-auto pr-2 pb-4">
                             <!-- Generado por JS -->
                         </div>
                     </div>
 
                     <div class="bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-700 sticky top-0">
-                        <h2 class="text-xl font-semibold mb-2 text-slate-200">Mapa de Ubicación Inicial</h2>
-                        <p class="text-sm text-slate-400 mb-4" id="mapInstruction">Selecciona un personaje en la lista para ubicarlo.</p>
+                        <h2 class="text-xl font-semibold mb-2 text-slate-200">Initial Positen Map</h2>
+                        <p class="text-sm text-slate-400 mb-4" id="mapInstruction">Select a character from the list to place them.</p>
                         
-                        <!-- Contenedor del minimapa -->
-                        <div class="relative mx-auto border-2 border-slate-600 rounded overflow-hidden shadow-inner bg-slate-900" style="width: 320px; height: 400px; cursor: crosshair;" onclick="handleMinimapClick(event)" id="minimapWrap">
+                        <!-- Minimap container -->
+                        <div class="relative mx-auto border-2 border-slate-600 rounded overflow-hidden shadow-inner bg-slate-900" style="width: 320px; height: 400px; cursor: crosshair;" onclickk="handleMinimapClickk(event)" id="minimapWrap">
                             <img id="officePreview" src="assets/oficina-placeholder.png" class="w-full h-full object-cover pixel-art opacity-60" draggable="false" alt="Office layout preview">
                             <div id="markersContainer" class="absolute inset-0 pointer-events-none"></div>
                         </div>
@@ -163,10 +163,10 @@
                 </div>
             </div>
 
-            <!-- VISTA: MAPA / COLISIONES -->
+            <!-- VIEW: MAP / COLLISIONS -->
             <div id="viewMap" class="absolute inset-0 p-6 hidden flex w-full max-w-7xl mx-auto gap-6">
                 
-                <!-- Panel Central: Editor Grid -->
+                <!-- Central Panel: Grid Editor -->
                 <div class="flex-1 bg-slate-800 rounded-xl shadow-lg border border-slate-700 flex flex-col overflow-hidden">
                     <div class="bg-slate-900 p-3 border-b border-slate-700 flex justify-between items-center">
                         <h2 class="text-lg font-bold text-white">Editor de Plano</h2>
@@ -175,22 +175,22 @@
                         </div>
                     </div>
                     
-                    <!-- Barra de herramientas (Top) -->
+                    <!-- Barra de tools (Top) -->
                     <div class="bg-slate-800 p-2 border-b border-slate-700 flex flex-wrap gap-2 items-center justify-center shadow-inner">
                         
                         <div class="text-xs font-bold text-slate-400 uppercase mr-2 tracking-wider">Terreno:</div>
                         
-                        <button onclick="setMapBrush('terrain', 0)" id="brush-0" class="brush-btn px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded border border-slate-500 shadow-sm flex items-center gap-2 transition-colors">
-                            <div class="w-3 h-3 bg-gray-500 rounded-sm border border-gray-900"></div> Suelo (Borrar)
+                        <button onclickk="setMapBrush('terrain', 0)" id="brush-0" class="brush-btn px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded border border-slate-500 shadow-sm flex items-center gap-2 transiten-colors">
+                            <div class="w-3 h-3 bg-gray-500 rounded-sm border border-gray-900"></div> Floor (Erase)
                         </button>
-                        <button onclick="setMapBrush('terrain', 1)" id="brush-1" class="brush-btn px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded border border-slate-500 shadow-sm flex items-center gap-2 transition-colors">
-                            <div class="w-3 h-3 bg-red-500 rounded-sm opacity-80 border border-gray-900"></div> Pared (Muro)
+                        <button onclickk="setMapBrush('terrain', 1)" id="brush-1" class="brush-btn px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded border border-slate-500 shadow-sm flex items-center gap-2 transiten-colors">
+                            <div class="w-3 h-3 bg-red-500 rounded-sm opacity-80 border border-gray-900"></div> Wall (Muro)
                         </button>
-                        <button onclick="setMapBrush('terrain', 2)" id="brush-2" class="brush-btn px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded border border-slate-500 shadow-sm flex items-center gap-2 transition-colors">
-                            <div class="w-3 h-3 bg-yellow-500 rounded-sm opacity-80 border border-gray-900"></div> Puerta
+                        <button onclickk="setMapBrush('terrain', 2)" id="brush-2" class="brush-btn px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded border border-slate-500 shadow-sm flex items-center gap-2 transiten-colors">
+                            <div class="w-3 h-3 bg-yellow-500 rounded-sm opacity-80 border border-gray-900"></div> Door
                         </button>
-                        <button onclick="setMapBrush('terrain', 3)" id="brush-3" class="brush-btn px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded border border-slate-500 shadow-sm flex items-center gap-2 transition-colors">
-                            <div class="w-3 h-3 bg-green-500 rounded-sm opacity-80 border border-gray-900"></div> Silla (Destino)
+                        <button onclickk="setMapBrush('terrain', 3)" id="brush-3" class="brush-btn px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded border border-slate-500 shadow-sm flex items-center gap-2 transiten-colors">
+                            <div class="w-3 h-3 bg-green-500 rounded-sm opacity-80 border border-gray-900"></div> Chair (Destino)
                         </button>
                     </div>
 
@@ -198,25 +198,25 @@
                         <!-- El grid en sí -->
                         <div id="interactiveGrid" class="grid-container shadow-[0_0_20px_rgba(0,0,0,0.5)]">
                             <div class="grid-bg-img"></div>
-                            <!-- Celdas via JS -->
+                            <!-- Cells via JS -->
                         </div>
                     </div>
                 </div>
 
-                <!-- Panel Lateral Mapeo IA (Derecha) -->
+                <!-- AI Mapping Side Panel (Right) -->
                 <div class="w-80 flex flex-col gap-4">
                     
                     <div class="bg-slate-800 rounded-xl flex-1 border border-slate-700 shadow-lg flex flex-col overflow-hidden">
                         <div class="p-3 border-b border-slate-700 bg-slate-900 flex justify-between items-center">
-                            <h3 class="text-sm font-bold text-white">Mapeo Salas Inteligencia Art.</h3>
+                            <h3 class="text-sm font-bold text-white">Mapeo Rooms Inteligencia Art.</h3>
                         </div>
                         
                         <div class="p-3 border-b border-slate-700 bg-slate-800">
-                            <button onclick="setMapBrush('room')" id="brush-room" class="w-full brush-btn px-3 py-2 bg-purple-700 hover:bg-purple-600 text-white text-xs rounded border border-purple-500 shadow flex justify-center items-center gap-2 transition-colors">
+                            <button onclickk="setMapBrush('room')" id="brush-room" class="w-full brush-btn px-3 py-2 bg-purple-700 hover:bg-purple-600 text-white text-xs rounded border border-purple-500 shadow flex justify-center items-center gap-2 transiten-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>
-                                Pintar Salas (IA)
+                                Paint Rooms (IA)
                             </button>
-                            <p class="text-[10px] text-slate-400 mt-2 text-center leading-tight">Activa este pincel y selecciona una sala abajo para vincular secciones a esa sala.</p>
+                            <p class="text-[10px] text-slate-400 mt-2 text-center leading-tight">Activa este pincel y select una room abajo para vincular secciones a esa room.</p>
                         </div>
 
                         <div class="flex-1 overflow-y-auto p-3" id="roomListDashboard">
@@ -224,22 +224,22 @@
                         </div>
 
                         <div class="p-3 border-t border-slate-700 bg-slate-900">
-                            <button onclick="addNewRoom()" class="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs rounded border border-slate-500 border-dashed transition-colors flex items-center justify-center gap-2">
+                            <button onclickk="addNewRoom()" class="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs rounded border border-slate-500 border-dashed transiten-colors flex items-center justify-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                                Nueva Habitación
+                                New Habitación
                             </button>
                         </div>
                     </div>
 
-                        <!-- Configuración IA -->
+                        <!-- AI Configuration -->
                         <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-lg shrink-0">
                             <h3 class="text-xs font-bold text-blue-400 mb-2 flex items-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                                API Inteligencia Artificial
+                                AI API Configuration
                             </h3>
-                            <label class="block text-[10px] text-slate-400 mb-1">Gemini API Key</label>
-                            <input type="password" id="geminiApiKey" onchange="saveApiKey()" spellcheck="false" class="w-full bg-slate-900 border border-slate-600 text-xs px-2 py-1.5 rounded text-white focus:outline-none focus:border-blue-400 mb-2" placeholder="AIzaSy...">
-                            <p class="text-[9px] text-slate-500 leading-tight">Modelo configurado: <strong class="text-slate-300">gemini-2.5-flash</strong><br>Para procesar comandos de voz naturales.</p>
+                            <label class="block text-[10px] text-slate-400 mb-1">Ollama API URL</label>
+                            <input type="text" id="ollamaApiUrl" onchange="saveApiKey()" spellcheck="false" class="w-full bg-slate-900 border border-slate-600 text-xs px-2 py-1.5 rounded text-white focus:outline-none focus:border-blue-400 mb-2" placeholder="http://ollama.blacktech.dev">
+                            <p class="text-[9px] text-slate-500 leading-tight">Configured model: <strong class="text-slate-300">llama3.2 (via Ollama)</strong><br>For processing natural language commands.</p>
                         </div>
             </div>
 
@@ -324,7 +324,7 @@
                     }
                 }
             } catch (error) {
-                console.error('Error al verificar contraseña', error);
+                console.error('Error verifying password', error);
             }
             document.getElementById('loginError').classList.remove('hidden');
         }
@@ -340,20 +340,20 @@
             const bChars = document.getElementById('tabBtnChars');
             const bMap = document.getElementById('tabBtnMap');
 
-            // Ocultar todas las vistas
+            // Hide all views
             vChars.classList.add('hidden');
             vMap.classList.add('hidden');
             
-            // Resetear todos los botones
-            bChars.className = "py-3 px-2 text-sm font-bold tab-inactive flex items-center gap-2 transition-colors";
-            bMap.className = "py-3 px-2 text-sm font-bold tab-inactive flex items-center gap-2 transition-colors";
+            // Reset all buttons
+            bChars.className = "py-3 px-2 text-sm font-bold tab-inactive flex items-center gap-2 transiten-colors";
+            bMap.className = "py-3 px-2 text-sm font-bold tab-inactive flex items-center gap-2 transiten-colors";
 
             if(t === 'chars') {
                 vChars.classList.remove('hidden');
-                bChars.className = "py-3 px-2 text-sm font-bold tab-active flex items-center gap-2 transition-colors";
+                bChars.className = "py-3 px-2 text-sm font-bold tab-active flex items-center gap-2 transiten-colors";
             } else if (t === 'map') {
                 vMap.classList.remove('hidden');
-                bMap.className = "py-3 px-2 text-sm font-bold tab-active flex items-center gap-2 transition-colors";
+                bMap.className = "py-3 px-2 text-sm font-bold tab-active flex items-center gap-2 transiten-colors";
                 renderGrid();
             }
         }
@@ -362,7 +362,7 @@
             document.getElementById('dashboardScreen').classList.remove('hidden');
             await loadAllData();
             // Default select
-            setMapBrush('terrain', 1); // Select Pared
+            setMapBrush('terrain', 1); // Select Wall
             
             // Render all
             renderCharacters();
@@ -374,10 +374,10 @@
 
         // LOAD / SAVE from SERVER
         async function loadAllData() {
-            // API Key (localStorage - personal)
-            const savedAPI = localStorage.getItem('pixel_gemini_api_key');
+            // API URL (localStorage - personal)
+            const savedAPI = localStorage.getItem('pixel_ollama_api_url');
             if (savedAPI) {
-                const el = document.getElementById('geminiApiKey');
+                const el = document.getElementById('ollamaApiUrl');
                 if (el) el.value = savedAPI;
             }
 
@@ -389,7 +389,7 @@
                     fetch('/api/rooms').catch(() => null)
                 ]);
 
-                // 1. Chars from server
+                // 1. Characters from server
                 if (configRes && configRes.ok) {
                     const config = await configRes.json();
                     charConfig = config.agents.map(a => ({
@@ -397,18 +397,18 @@
                         name: a.name,
                         x: a.x ? Math.floor(a.x / 32) : null,
                         y: a.y ? Math.floor(a.y / 32) : null,
-                        role: a.role || '',
-                        room: '',
-                        personality: 'Trabajador',
+                        rolee: a.role || '',
+                        room: a.room || '',
+                        personality: 'Worker',
                         visible: a.active !== false
                     }));
                 } else {
                     throw new Error('No server config');
                 }
 
-                // Assure 6 chars
+                // Ensure 6 chars
                 while(charConfig.length < NUM_CHARS) {
-                    charConfig.push({ id: charConfig.length, name: `Personaje ${charConfig.length+1}`, x: null, y: null, role:'', room:'', personality:'Trabajador', visible:true });
+                    charConfig.push({ id: charConfig.length, name: `Character ${charConfig.length+1}`, x: null, y: null, rolee:'', room:'', personality:'Worker', visible:true });
                 }
 
                 // 2. Collision from server
@@ -445,7 +445,8 @@
                 const agentsConfig = charConfig.map(c => ({
                     id: c.id,
                     name: c.name,
-                    role: c.role,
+                    role: c.rolee,
+                    room: c.room || '',
                     color: c.id,
                     x: c.x !== null ? c.x * 32 + 16 : 320,
                     y: c.y !== null ? c.y * 32 + 16 : 400,
@@ -483,13 +484,13 @@
 
         function generateDefaultChars() {
             const arr = [];
-            for(let i=0; i<NUM_CHARS; i++) arr.push({id:i, name:'Personaje '+(i+1), x:null, y:null, role:'', room:'', personality:'Trabajador', visible:true});
+            for(let i=0; i<NUM_CHARS; i++) arr.push({id:i, name:'Character '+(i+1), x:null, y:null, rolee:'', room:'', personality:'Worker', visible:true});
             return arr;
         }
 
         function saveApiKey() {
-            const el = document.getElementById('geminiApiKey');
-            if (el) localStorage.setItem('pixel_gemini_api_key', el.value);
+            const el = document.getElementById('ollamaApiUrl');
+            if (el) localStorage.setItem('pixel_ollama_api_url', el.value);
         }
 
         async function autoSave() {
@@ -507,7 +508,7 @@
                 pixel_office_config: localStorage.getItem('pixel_office_config'),
                 pixel_office_collision: localStorage.getItem('pixel_office_collision'),
                 pixelOfficeRooms: localStorage.getItem('pixelOfficeRooms'),
-                pixel_gemini_api_key: localStorage.getItem('pixel_gemini_api_key')
+                pixel_ollama_api_url: localStorage.getItem('pixel_ollama_api_url')
             };
             
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(config, null, 2));
@@ -515,7 +516,7 @@
             downloadAnchorNode.setAttribute("href",     dataStr);
             downloadAnchorNode.setAttribute("download", "pixel_office_config.json");
             document.body.appendChild(downloadAnchorNode); // required for firefox
-            downloadAnchorNode.click();
+            downloadAnchorNode.clickk();
             downloadAnchorNode.remove();
         }
 
@@ -536,27 +537,27 @@
                     if (config.pixelOfficeRooms) {
                         aiRooms = JSON.parse(config.pixelOfficeRooms);
                     }
-                    if (config.pixel_gemini_api_key) {
-                        localStorage.setItem('pixel_gemini_api_key', config.pixel_gemini_api_key);
-                        const apiKeyInput = document.getElementById('geminiApiKey');
+                    if (config.pixel_ollama_api_url) {
+                        localStorage.setItem('pixel_ollama_api_url', config.pixel_ollama_api_url);
+                        const apiKeyInput = document.getElementById('ollamaApiUrl');
                         if (apiKeyInput) {
-                            apiKeyInput.value = config.pixel_gemini_api_key;
+                            apiKeyInput.value = config.pixel_ollama_api_url;
                         }
                     }
                     
                     // Save to server
                     await saveToServer();
                     
-                    // Actualizar UI
+                    // Update UI
                     renderCharacters();
                     renderMinimapMarkers();
                     renderGrid();
                     renderRoomsList();
                     
-                    alert('Configuración importada y guardada en servidor.');
+                    alert('Configuration imported and saved to server.');
                 } catch (error) {
-                    console.error('Error al parsear el archivo JSON', error);
-                    alert('Error al importar la configuración. Archivo no válido.');
+                    console.error('Error parsing JSON file', error);
+                    alert('Error importing configuration. Invalid file.');
                 }
             };
             reader.readAsText(file);
@@ -564,26 +565,26 @@
             event.target.value = '';
         }
 
-        // ================= TRAYECTORIA Y PERSONAJES =================
+        // ================= TRAYECTORIA Y CHARACTERS =================
         function renderCharacters() {
             const list = document.getElementById('characterList');
             list.innerHTML = '';
 
             charConfig.forEach(char => {
                 const isSel = selectedCharId === char.id;
-                // Calculamos background (mismo q miniatura en index)
-                const spriteStyle = `width: 32px; height: 64px; background-image: url('assets/characters/char_${char.id}.png'); background-position: 0px 0px; background-size: 224px 192px;`;
+                // Calculate background (mismo q miniatura en index)
+                const spriteStyle = `width: 32px; height: 64px; background-image: url('assets/characters/char_${char.id}.png'); background-positen: 0px 0px; background-size: 224px 192px;`;
 
                 const el = document.createElement('div');
-                el.className = `flex flex-col gap-2 p-4 rounded-xl transition-all border-2 ${isSel ? 'bg-blue-900/60 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'bg-slate-800/80 border-slate-700 hover:bg-slate-700'}`;
+                el.className = `flex flex-col gap-2 p-4 rounded-xl transiten-all border-2 ${isSel ? 'bg-blue-900/60 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'bg-slate-800/80 border-slate-700 hover:bg-slate-700'}`;
 
                 // Populate rooms for select
-                let roomOptions = '<option value="">Ninguna</option>';
+                let roomOptions = '<option value="">None</option>';
                 aiRooms.forEach(r => {
                     roomOptions += `<option value="${r.name}" ${char.room === r.name ? 'selected' : ''}>${r.name}</option>`;
                 });
 
-                let posText = char.x !== null ? `Coordenada: [${char.x}, ${char.y}]` : 'Posición Aleatoria';
+                let posText = char.x !== null ? `Coordinate: [${char.x}, ${char.y}]` : 'Random Positen';
                 
                 el.innerHTML = `
                     <div class="flex items-center gap-4">
@@ -591,40 +592,40 @@
                             <div style="${spriteStyle}"></div>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <label class="block text-xs text-slate-400 mb-1">Nombre</label>
-                            <input type="text" value="${char.name}" onchange="updateCharItem(${char.id}, 'name', this.value)" class="w-full bg-slate-900 border ${isSel ? 'border-blue-400' : 'border-slate-600'} rounded px-3 py-1.5 outline-none text-white text-sm focus:border-blue-400 transition-colors">
+                            <label class="block text-xs text-slate-400 mb-1">Name</label>
+                            <input type="text" value="${char.name}" onchange="updateCharItem(${char.id}, 'name', this.value)" class="w-full bg-slate-900 border ${isSel ? 'border-blue-400' : 'border-slate-600'} rounded px-3 py-1.5 outline-none text-white text-sm focus:border-blue-400 transiten-colors">
                             <div class="mt-1 text-[11px] ${char.x !== null ? 'text-green-400' : 'text-slate-400'} font-mono">${posText}</div>
                         </div>
                         <div class="flex flex-col items-center gap-2 shrink-0">
-                             <div class="flex items-center gap-2" title="Mostrar/Ocultar personaje">
+                             <div class="flex items-center gap-2" title="Show/Hide character">
                                  <span class="text-[10px] text-slate-400 font-semibold uppercase">Visible</span>
                                  <label class="relative inline-flex items-center cursor-pointer">
                                      <input type="checkbox" class="sr-only peer" onchange="updateCharItem(${char.id}, 'visible', this.checked)" ${char.visible !== false ? 'checked' : ''}>
-                                     <div class="w-8 h-4 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-500"></div>
+                                     <div class="w-8 h-4 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transiten-all peer-checked:bg-blue-500"></div>
                                  </label>
                              </div>
-                             <button onclick="selectCharForPlacement(${char.id})" class="${isSel ? 'bg-blue-600 text-white border border-blue-400 shadow-md' : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'} w-full text-xs font-bold py-1.5 px-3 rounded-lg transition-colors flex items-center justify-center gap-1">
-                                 📍 <span>${isSel ? 'Situar...' : 'Ubicar'}</span>
+                             <button onclickk="selectCharForPlacement(${char.id})" class="${isSel ? 'bg-blue-600 text-white border border-blue-400 shadow-md' : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'} w-full text-xs font-bold py-1.5 px-3 rounded-lg transiten-colors flex items-center justify-center gap-1">
+                                 📍 <span>${isSel ? 'Placing...' : 'Place'}</span>
                              </button>
                         </div>
                     </div>
                     <div class="grid grid-cols-3 gap-2 mt-2">
                         <div>
-                            <label class="block text-[10px] text-slate-400 mb-1 uppercase">Cargo / Rol</label>
-                            <input type="text" placeholder="Ej: Desarrollador" value="${char.role || ''}" onchange="updateCharItem(${char.id}, 'role', this.value)" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 outline-none text-white text-xs focus:border-blue-400 transition-colors">
+                            <label class="block text-[10px] text-slate-400 mb-1 uppercase">Rolee</label>
+                            <input type="text" placeholder="E.g: Developer" value="${char.rolee || ''}" onchange="updateCharItem(${char.id}, 'rolee', this.value)" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 outline-none text-white text-xs focus:border-blue-400 transiten-colors">
                         </div>
                         <div>
-                            <label class="block text-[10px] text-slate-400 mb-1 uppercase">Sala Dfct.</label>
-                            <select onchange="updateCharItem(${char.id}, 'room', this.value)" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 outline-none text-white text-xs focus:border-blue-400 transition-colors">
+                            <label class="block text-[10px] text-slate-400 mb-1 uppercase">Default Room</label>
+                            <select onchange="updateCharItem(${char.id}, 'room', this.value)" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 outline-none text-white text-xs focus:border-blue-400 transiten-colors">
                                 ${roomOptions}
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[10px] text-slate-400 mb-1 uppercase">Personalidad</label>
-                            <select onchange="updateCharItem(${char.id}, 'personality', this.value)" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 outline-none text-white text-xs focus:border-blue-400 transition-colors">
-                                <option value="Trabajador" ${char.personality === 'Trabajador' ? 'selected' : ''}>Trabajador</option>
-                                <option value="Inquieto" ${char.personality === 'Inquieto' ? 'selected' : ''}>Inquieto (Camina)</option>
-                                <option value="Perezoso" ${char.personality === 'Perezoso' ? 'selected' : ''}>Perezoso (Charlatán)</option>
+                            <label class="block text-[10px] text-slate-400 mb-1 uppercase">Personality</label>
+                            <select onchange="updateCharItem(${char.id}, 'personality', this.value)" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 outline-none text-white text-xs focus:border-blue-400 transiten-colors">
+                                <option value="Worker" ${char.personality === 'Worker' ? 'selected' : ''}>Worker</option>
+                                <option value="Restless" ${char.personality === 'Restless' ? 'selected' : ''}>Restless (Walks)</option>
+                                <option value="Lazy" ${char.personality === 'Lazy' ? 'selected' : ''}>Lazy (Chatty)</option>
                             </select>
                         </div>
                     </div>
@@ -644,20 +645,20 @@
 
         function selectCharForPlacement(id) {
             selectedCharId = id;
-            document.getElementById('mapInstruction').innerHTML = `Haz clic en el mapa derecho para ubicar a <span class="text-blue-400 font-bold">${charConfig[id].name}</span>`;
+            document.getElementById('mapInstruction').innerHTML = `Clickk on the map to place <span class="text-blue-400 font-bold">${charConfig[id].name}</span>`;
             renderCharacters();
             renderMinimapMarkers();
         }
 
-        function handleMinimapClick(e) {
+        function handleMinimapClickk(e) {
             if (selectedCharId === null) return;
             const rect = document.getElementById('minimapWrap').getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const clickY = e.clientY - rect.top;
+            const clickkX = e.clientX - rect.left;
+            const clickkY = e.clientY - rect.top;
 
             // map scaling
-            const realX = clickX / MINIMAP_SCALE;
-            const realY = clickY / MINIMAP_SCALE;
+            const realX = clickkX / MINIMAP_SCALE;
+            const realY = clickkY / MINIMAP_SCALE;
             const tX = Math.floor(realX / TILE_SIZE);
             const tY = Math.floor(realY / TILE_SIZE);
 
@@ -668,7 +669,7 @@
                 renderCharacters();
                 renderMinimapMarkers();
                 selectedCharId = null;
-                document.getElementById('mapInstruction').textContent = 'Selecciona un personaje en la lista para ubicarlo.';
+                document.getElementById('mapInstruction').textContent = 'Select a character from the list to place them.';
                 renderCharacters(); // quit highlights
             }
         }
@@ -687,7 +688,7 @@
                     mk.style.top = my + 'px';
                     
                     mk.innerHTML = `
-                         <div class="relative group" onclick="selectCharForPlacement(${char.id}); event.stopPropagation()">
+                         <div class="relative group" onclickk="selectCharForPlacement(${char.id}); event.stopPropagation()">
                             <div class="w-5 h-5 bg-blue-500 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[9px] font-bold text-white leading-none">
                                 ${char.id + 1}
                             </div>
@@ -703,7 +704,7 @@
         }
 
 
-        // ================= EDITOR MAPAS / SALAS IA =================
+        // ================= EDITOR MAPS / SALAS IA =================
         function setMapBrush(type, value = null) {
             currentBrushType = type;
             
@@ -786,14 +787,14 @@
                 
                 let isMine = active.tiles.some(t => t.x===x && t.y===y);
                 
-                // Quitamos de otras salas primero si hiciera falta
+                // Remove from other rooms first si hiciera falta
                 aiRooms.forEach(room => {
                     if (room.id !== activeRoomId) {
                         const oldLen = room.tiles.length;
                         room.tiles = room.tiles.filter(t => !(t.x===x && t.y===y));
                         if(oldLen !== room.tiles.length) {
                              const counterEl = document.getElementById('roomCount_' + room.id);
-                             if (counterEl) counterEl.textContent = 'Celdas: ' + room.tiles.length;
+                             if (counterEl) counterEl.textContent = 'Cells: ' + room.tiles.length;
                         }
                     }
                 });
@@ -808,9 +809,9 @@
                     node.style.border = '';
                 }
                 
-                // Actualizar solo el contador para optimizar
+                // Update only counter for optimization
                 const activeCounter = document.getElementById('roomCount_' + activeRoomId);
-                if (activeCounter) activeCounter.textContent = 'Celdas: ' + active.tiles.length;
+                if (activeCounter) activeCounter.textContent = 'Cells: ' + active.tiles.length;
             }
         }
 
@@ -823,7 +824,7 @@
         // ================= ROOMS (IA) =================
         function addNewRoom() {
             const col = ROOM_COLORS[aiRooms.length % ROOM_COLORS.length];
-            aiRooms.push({ id: Date.now(), name: 'Zona '+(aiRooms.length+1), color: col, tiles: [] });
+            aiRooms.push({ id: Date.now(), name: 'Zone '+(aiRooms.length+1), color: col, tiles: [] });
             if(currentBrushType !== 'room') setMapBrush('room');
             activeRoomId = aiRooms[aiRooms.length-1].id;
             autoSave();
@@ -849,14 +850,14 @@
         function renderRoomsList() {
             const list = document.getElementById('roomListDashboard');
             list.innerHTML = '';
-            if(aiRooms.length===0) list.innerHTML = `<p class="text-xs text-slate-500 italic text-center mt-4">No hay áreas mapeadas.</p>`;
+            if(aiRooms.length===0) list.innerHTML = `<p class="text-xs text-slate-500 italic text-center mt-4">No mapped areas.</p>`;
 
             aiRooms.forEach(r => {
                 const isSel = (activeRoomId === r.id && currentBrushType === 'room');
                 const p = document.createElement('div');
-                p.className = `flex flex-col gap-2 p-3 mb-2 rounded border transition-colors cursor-pointer ${isSel ? 'bg-slate-700 border-purple-400' : 'bg-slate-800 border-slate-600 hover:border-slate-400'}`;
+                p.className = `flex flex-col gap-2 p-3 mb-2 rounded border transiten-colors cursor-pointer ${isSel ? 'bg-slate-700 border-purple-400' : 'bg-slate-800 border-slate-600 hover:border-slate-400'}`;
                 
-                p.onclick = (e) => {
+                p.onclickk = (e) => {
                     if(e.target.tagName!=='INPUT' && e.target.tagName!=='BUTTON' && !e.target.closest('button')) {
                         setMapBrush('room');
                         activeRoomId = r.id;
@@ -867,14 +868,14 @@
                 p.innerHTML = `
                     <div class="flex items-center gap-2">
                         <div class="w-4 h-4 rounded shadow-inner shrink-0" style="background-color: ${r.color}"></div>
-                        <input type="text" value="${r.name}" onchange="updateRoom(${r.id}, this.value)" class="flex-1 bg-slate-900 border ${isSel ? 'border-purple-400' : 'border-slate-700'} text-xs px-2 py-1 rounded text-white focus:outline-none" onclick="(e)=>e.stopPropagation()">
-                        <button onclick="removeRoom(${r.id})" class="text-slate-500 hover:text-red-400 p-1 bg-slate-900 rounded border border-slate-700 shrink-0">
+                        <input type="text" value="${r.name}" onchange="updateRoom(${r.id}, this.value)" class="flex-1 bg-slate-900 border ${isSel ? 'border-purple-400' : 'border-slate-700'} text-xs px-2 py-1 rounded text-white focus:outline-none" onclickk="(e)=>e.stopPropagation()">
+                        <button onclickk="removeRoom(${r.id})" class="text-slate-500 hover:text-red-400 p-1 bg-slate-900 rounded border border-slate-700 shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
                     </div>
                     <div class="text-[10px] text-slate-400 flex justify-between items-center px-1">
-                        <span id="roomCount_${r.id}">Celdas: ${r.tiles.length}</span>
-                        ${isSel ? '<span class="text-purple-400 font-bold animate-pulse">● PINTANDO</span>' : ''}
+                        <span id="roomCount_${r.id}">Cells: ${r.tiles.length}</span>
+                        ${isSel ? '<span class="text-purple-400 font-bold animate-pulse">● PAINTING</span>' : ''}
                     </div>
                 `;
                 list.appendChild(p);

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oficina Pixel Art - Personaje Random</title>
+    <title>Pixel Office - Agent Visualizer</title>
     <style>
         body {
             margin: 0;
@@ -61,14 +61,14 @@
     <div id="gameContainer">
         <canvas id="gameCanvas" width="640" height="800"></canvas>
         <div id="ui">
-            <div>Tiempo: <span id="timer">0</span>s</div>
+            <div>Time: <span id="timer">0</span>s</div>
         </div>
     </div>
 
-    <!-- Panel de control interactivo -->
+    <!-- Interactive Control Panel -->
     <div id="controlPanel" class="bg-gray-800 rounded-lg shadow-xl w-96 flex flex-col h-[800px] border border-gray-700">
         
-        <!-- Pestañas -->
+        <!-- Tabs -->
         <div class="flex border-b border-gray-700 bg-gray-900 rounded-t-lg">
             <button id="tabChat" class="flex-1 py-3 text-sm font-bold text-blue-400 border-b-2 border-blue-400 flex items-center justify-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
@@ -82,39 +82,55 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
                 Dashboard
             </a>
+            <button id="tabEmail" class="flex-1 py-3 text-sm font-bold text-gray-400 hover:text-gray-200 flex items-center justify-center gap-2 transition-colors relative">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                Email
+                <span id="emailBadge" class="hidden absolute top-1 right-3 bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5">0</span>
+            </button>
+            <button id="tabContacts" class="flex-1 py-3 text-sm font-bold text-gray-400 hover:text-gray-200 flex items-center justify-center gap-2 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                Contacts
+            </button>
         </div>
 
-        <!-- Vista del Chat Secundario -->
+        <!-- Secondary Chat View -->
         <div id="viewChat" class="flex flex-col flex-1 overflow-hidden">
+            <!-- Briefing Button -->
+            <div class="px-4 pt-3 pb-2 bg-gray-900 border-b border-gray-700">
+                <button id="briefingBtn" onclick="getNocturnalBriefing()" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white text-sm font-bold py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10 10 10 0 0 0-10-10z"></path><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    Nocturnal Briefing
+                </button>
+            </div>
             <div class="flex-1 p-4 overflow-y-auto" id="chatHistory">
                 <div class="mb-4 text-xs text-gray-500 text-center border-b border-gray-700 pb-2">
-                    Sesión iniciada. Pide a los personajes que hagan tareas.
+                    Session started. Ask characters to perform tasks.
                 </div>
                 
                 <div class="space-y-4" id="chatMessages">
                     <div class="flex flex-col bg-gray-700/50 p-3 rounded-lg border border-gray-600/50 w-4/5">
-                        <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider mb-1">Guía del sistema</span>
-                        <span class="text-sm text-gray-200">Ejemplo: "Dile a character1 que vaya a la sala de reuniones" o "character2, quiero que te sientes a trabajar"</span>
+                        <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider mb-1">System Guide</span>
+                        <span class="text-sm text-gray-200">Example: "Tell character1 to go to the meeting room" or "character2, I want you to sit down and work"</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Opciones Rápidas / Salas -->
+            <!-- Quick Options / Rooms -->
             <div class="p-3 bg-gray-900 border-t border-gray-700">
                 <div class="flex flex-wrap gap-2 mb-2" id="quickRooms">
-                    <!-- Se llena con las salas del dashboard -->
+                    <!-- Filled with rooms from dashboard -->
                 </div>
                 
                 <div class="flex flex-wrap gap-1" id="quickChars">
-                    <!-- Se llenará dinámicamente -->
+                    <!-- Filled dynamically -->
                 </div>
             </div>
 
-            <!-- Entrada de comandos -->
+            <!-- Command Input -->
             <div class="p-4 bg-gray-800 border-t border-gray-700 rounded-b-lg">
                 <form id="aiPromptForm" class="flex gap-2">
-                    <input type="text" id="aiPromptInput" placeholder="Escribe tu comando..." class="flex-1 bg-gray-900 text-white placeholder-gray-500 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500" autocomplete="off">
-                    <button type="button" id="micBtn" class="bg-gray-700 hover:bg-gray-600 text-gray-300 p-2 rounded-lg transition-colors flex items-center justify-center relative group" title="Dictar por voz">
+                    <input type="text" id="aiPromptInput" placeholder="Type your command..." class="flex-1 bg-gray-900 text-white placeholder-gray-500 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500" autocomplete="off">
+                    <button type="button" id="micBtn" class="bg-gray-700 hover:bg-gray-600 text-gray-300 p-2 rounded-lg transition-colors flex items-center justify-center relative group" title="Voice dictation">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" x2="12" y1="19" y2="22"></line></svg>
                     </button>
                     <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-lg transition-colors flex items-center justify-center">
@@ -124,20 +140,20 @@
             </div>
         </div>
 
-        <!-- Vista del Log -->
+        <!-- Log View -->
         <div id="viewLog" class="hidden" style="flex-direction: column; flex: 1; overflow: hidden;">
             <div style="flex: 1; padding: 16px; overflow-y: auto; background: #111827; max-height: 700px;" id="logContainer">
                 <div style="margin-bottom: 16px; font-size: 12px; color: #6b7280; text-align: center; border-bottom: 1px solid #374151; padding-bottom: 8px;">
-                    Registro de actividades
+                    Activity Log
                 </div>
                 <div id="logEntries" style="font-family: monospace; font-size: 12px; display: flex; flex-direction: column; gap: 8px;">
-                    <!-- Se llena dinámicamente -->
+                    <!-- Filled dynamically -->
                 </div>
             </div>
             <div style="padding: 12px; background: #1f2937; border-top: 1px solid #374151;">
                 <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                    <button onclick="refreshLog()" style="flex: 1; background: #2563eb; color: white; padding: 8px; border-radius: 4px; font-size: 12px; border: none; cursor: pointer;">🔄 Actualizar</button>
-                    <button onclick="clearLog()" style="flex: 1; background: #dc2626; color: white; padding: 8px; border-radius: 4px; font-size: 12px; border: none; cursor: pointer;">🗑️ Limpiar</button>
+                    <button onclick="refreshLog()" style="flex: 1; background: #2563eb; color: white; padding: 8px; border-radius: 4px; font-size: 12px; border: none; cursor: pointer;">🔄 Refresh</button>
+                    <button onclick="clearLog()" style="flex: 1; background: #dc2626; color: white; padding: 8px; border-radius: 4px; font-size: 12px; border: none; cursor: pointer;">🗑️ Clear</button>
                 </div>
                 <div style="font-size: 10px; color: #6b7280; display: flex; gap: 12px;">
                     <button onclick="toggleLogFilter(0)" id="filterDustin" style="display: flex; align-items: center; gap: 4px; background: rgba(59, 130, 246, 0.1); border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: all 0.2s; opacity: 1;">
@@ -159,6 +175,68 @@
                 </div>
             </div>
         </div>
+
+        <!-- Email View -->
+        <div id="viewEmail" class="hidden" style="flex-direction: column; flex: 1; overflow: hidden;">
+            <!-- Account Selector -->
+            <div id="emailAccountBar" style="background: #1f2937; border-bottom: 1px solid #374151; padding: 0; flex-shrink: 0;">
+                <!-- Category tabs -->
+                <div style="display: flex; overflow-x: auto; padding: 6px 8px; gap: 4px; border-bottom: 1px solid #374151;">
+                    <button class="email-cat-btn active" data-cat="all" style="white-space: nowrap; font-size: 10px; padding: 4px 10px; border-radius: 4px; border: none; cursor: pointer; background: #2563eb; color: white;">All</button>
+                    <button class="email-cat-btn" data-cat="operations" style="white-space: nowrap; font-size: 10px; padding: 4px 10px; border-radius: 4px; border: none; cursor: pointer; background: #374151; color: #d1d5db;">🏢 Ops</button>
+                    <button class="email-cat-btn" data-cat="support" style="white-space: nowrap; font-size: 10px; padding: 4px 10px; border-radius: 4px; border: none; cursor: pointer; background: #374151; color: #d1d5db;">🎫 Support</button>
+                    <button class="email-cat-btn" data-cat="notifications" style="white-space: nowrap; font-size: 10px; padding: 4px 10px; border-radius: 4px; border: none; cursor: pointer; background: #374151; color: #d1d5db;">🔔 Notif</button>
+                    <button class="email-cat-btn" data-cat="services" style="white-space: nowrap; font-size: 10px; padding: 4px 10px; border-radius: 4px; border: none; cursor: pointer; background: #374151; color: #d1d5db;">⚙️ Services</button>
+                    <button class="email-cat-btn" data-cat="filtering" style="white-space: nowrap; font-size: 10px; padding: 4px 10px; border-radius: 4px; border: none; cursor: pointer; background: #374151; color: #d1d5db;">🛡️ NP</button>
+                </div>
+                <!-- Account chips -->
+                <div id="emailAccountChips" style="display: flex; overflow-x: auto; padding: 6px 8px; gap: 6px;">
+                    <span style="color: #6b7280; font-size: 11px; padding: 4px 8px;">Loading accounts...</span>
+                </div>
+            </div>
+            <!-- Email List -->
+            <div id="emailList" style="flex: 1; overflow-y: auto; background: #111827;">
+                <div style="padding: 16px; font-size: 12px; color: #6b7280; text-align: center; border-bottom: 1px solid #374151;">
+                    Select an account to view inbox
+                </div>
+                <div style="font-family: monospace; font-size: 12px;">
+                    <!-- Filled dynamically -->
+                </div>
+            </div>
+            <!-- Email Detail -->
+            <div id="emailDetail" class="hidden" style="flex: 1; overflow-y: auto; background: #111827;">
+                <!-- Filled dynamically -->
+            </div>
+            <!-- Back button + refresh -->
+            <div style="padding: 8px 12px; background: #1f2937; border-top: 1px solid #374151; display: flex; gap: 8px;">
+                <button id="emailBackBtn" class="hidden" onclick="closeEmail()" style="flex: 1; background: #374151; color: #d1d5db; padding: 6px; border-radius: 4px; font-size: 11px; border: none; cursor: pointer;">← Back</button>
+                <button onclick="refreshEmail()" style="flex: 1; background: #2563eb; color: white; padding: 6px; border-radius: 4px; font-size: 11px; border: none; cursor: pointer;">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <!-- Contacts View -->
+        <div id="viewContacts" class="hidden" style="flex-direction: column; flex: 1; overflow: hidden;">
+            <!-- Search bar -->
+            <div style="padding: 8px 12px; background: #1f2937; border-bottom: 1px solid #374151;">
+                <input id="contactSearch" type="text" placeholder="Search contacts by name, email, or org..." style="width: 100%; background: #111827; border: 1px solid #374151; border-radius: 4px; padding: 6px 10px; color: #d1d5db; font-size: 12px; outline: none;" />
+            </div>
+            <!-- Sync status bar -->
+            <div id="syncStatusBar" style="padding: 6px 12px; background: #0f172a; border-bottom: 1px solid #374151; font-size: 10px; color: #6b7280; display: flex; gap: 12px; align-items: center;">
+                <span id="syncStatusText">Loading sync status...</span>
+            </div>
+            <!-- Contact list -->
+            <div id="contactList" style="flex: 1; overflow-y: auto; background: #111827;">
+                <div style="padding: 16px; font-size: 12px; color: #6b7280; text-align: center;">Type to search contacts...</div>
+            </div>
+            <!-- Contact detail -->
+            <div id="contactDetail" class="hidden" style="flex: 1; overflow-y: auto; background: #111827;">
+                <!-- Filled dynamically -->
+            </div>
+            <!-- Back button -->
+            <div style="padding: 8px 12px; background: #1f2937; border-top: 1px solid #374151; display: flex; gap: 8px;">
+                <button id="contactBackBtn" class="hidden" onclick="closeContact()" style="flex: 1; background: #374151; color: #d1d5db; padding: 6px; border-radius: 4px; font-size: 11px; border: none; cursor: pointer;">← Back to List</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -166,11 +244,11 @@
         const ctx = canvas.getContext('2d');
         ctx.imageSmoothingEnabled = false;
 
-        // Configuración
+        // Configuration
         const TILE_SIZE = 32;
         const SCALE = 2;
         
-        // Colores placeholder (reemplazar con sprites reales)
+        // Placeholder colors (replace with real sprites)
         const COLORS = {
             floor: '#d4c4b0',
             floorDark: '#c4b4a0',
@@ -187,7 +265,7 @@
             characterPants: '#2f4f4f'
         };
 
-        // Estados del personaje
+        // Character states
         const ACTIONS = {
             IDLE: 'idle',
             WALKING: 'walking',
@@ -204,7 +282,7 @@
         const ROWS = 25; // 800/32
         const MAX_IDLE_FRAMES = 60 * 5; // ~5 segundos a 60fps
 
-        // Matriz de colisiones (0=Suelo, 1=Pared/Mueble, 2=Puerta, 3=Silla)
+        // Collision matrix (0=Floor, 1=Wall/Furniture, 2=Door, 3=Chair)
         let default_COLLISION_MAP = [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,1],[1,0,0,0,0,0,1,1,0,0,0,0,0,1,0,0,0,0,0,1],[1,0,0,0,0,0,1,0,3,1,1,3,0,1,0,0,0,0,0,1],[1,0,0,0,0,0,1,0,3,1,1,3,0,1,0,0,0,0,0,1],[1,0,0,0,0,0,1,0,3,1,1,3,0,1,0,0,0,0,0,1],[1,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],[1,0,1,1,1,1,1,1,1,1,1,0,0,0,3,1,1,3,0,1],[1,0,0,3,0,0,3,0,0,3,0,0,1,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,1,0,3,1,1,3,0,1],[1,0,0,0,1,1,1,1,0,0,1,0,1,0,0,0,0,0,0,1],[1,0,0,3,0,0,3,0,0,3,0,0,1,0,1,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,2,1,1,1],[1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,2,1,1,1],[1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1],[1,0,0,0,1,1,1,1,0,0,0,0,1,0,1,1,1,0,0,1],[1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,3,0,0,0,1],[1,0,1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,1,1,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]];
         let COLLISION_MAP = default_COLLISION_MAP;
         try {
@@ -212,10 +290,10 @@
             if (savedMap) COLLISION_MAP = JSON.parse(savedMap);
         } catch(e) {}
 
-        // Estado de las puertas: { "x,y": true/false (true = abierta) }
+        // Door states: { "x,y": true/false (true = abierta) }
         let DOORS_OPEN = {};
 
-        // Clase Buscador de rutas (A*)
+        // Pathfinder class (A*)
         class Pathfinder {
             static findPath(startX, startY, endX, endY) {
                 if (endX < 0 || endX >= COLS || endY < 0 || endY >= ROWS) return [];
@@ -278,14 +356,14 @@
             }
         }
 
-        // Clase para manejar sprites (aquí cargarías tus imágenes reales)
+        // Sprite manager class (where you would load your real images)
         class SpriteManager {
             constructor() {
                 this.imagesLoaded = false;
                 this.sprites = {};
                 
                 let loadCount = 0;
-                const NUM_CHARS = 6;
+                const NUM_CHARS = 7;
                 // Solo background + chars (7 imágenes)
                 const totalImages = 1 + NUM_CHARS;
                 let triedFallbackBackground = false;
@@ -315,7 +393,7 @@
                 };
                 this.sprites.background.src = 'assets/oficina.png';
 
-                // Cargar personajes
+                // Load characters
                 this.sprites.chars = [];
                 for (let i = 0; i < NUM_CHARS; i++) {
                     const img = new Image();
@@ -333,20 +411,20 @@
                 if (!this.imagesLoaded) return;
                 
                 // === NUEVO SISTEMA ===
-                // Dimensiones del nuevo character sheet: 112x96
-                // Columnas: 7 (112/16) -> Cada frame es 16 de ancho
-                // Filas: 3 (96/32) -> Cada frame es 32 de alto
-                // Columnas: [Idle] [Walk1] [Walk2] [Walk3] [Walk4] [Walk5] [Sentado]
+                // New character sheet dimensions: 112x96
+                // Columns: 7 (112/16) -> Each frame is 16 wide
+                // Rows: 3 (96/32) -> Each frame is 32 tall
+                // Columns: [Idle] [Walk1] [Walk2] [Walk3] [Walk4] [Walk5] [Sitting]
                 const sWidth = 16;
                 const sHeight = 32;
 
                 let rowY = 0;
                 let flipX = false;
 
-                // Configuración de direcciones según spritesheet char_0.png
-                // Fila 0: Frente (Abajo)
-                // Fila 1: Espaldas (Arriba)
-                // Fila 2: Perfil (Derecha)
+                // Configuration de direcciones según spritesheet char_0.png
+                // Row 0: Front (Down)
+                // Row 1: Back (Up)
+                // Row 2: Profile (Right)
                 if (facing === 'down') {
                     rowY = 0;
                 } else if (facing === 'up') {
@@ -355,20 +433,20 @@
                     rowY = 2;
                 } else if (facing === 'left') {
                     rowY = 2;
-                    flipX = true; // Reflejamos horizontalmente el perfil derecho
+                    flipX = true; // Horizontally flip the right profile
                 }
 
-                let colX = 1; // Por defecto: estático (idle - Columna 2ª posición)
+                let colX = 1; // Default: static (idle - 2nd column position)
                 let yOffset = 0;
                 
                 if (action === ACTIONS.SITTING) {
                     // Las columnas 3, 4, 5, 6 son de estar sentados (ej. 3 es trabajando/leyendo)
                     colX = 3; 
-                    // Bajar el personaje un poco cuando está sentado
+                    // Lower the character a bit when sitting
                     yOffset = 16; 
                 } else if (action === ACTIONS.WALKING || action === ACTIONS.OPENING_DOOR) {
-                    // El ciclo de caminar solo usa las columnas 0, 1 y 2.
-                    // Hacemos un ciclo "ping-pong": 0 (Stand) -> 1 (Paso 1) -> 0 (Stand) -> 2 (Paso 2)
+                    // The walk cycle only uses columns 0, 1, and 2.
+                    // We do a "ping-pong" cycle: 0 (Stand) -> 1 (Step 1) -> 0 (Stand) -> 2 (Step 2)
                     const walkFrame = Math.floor(frame / 6) % 4;
                     if (walkFrame === 0) colX = 0;
                     else if (walkFrame === 1) colX = 1;
@@ -380,14 +458,14 @@
                 const sy = rowY * sHeight;
 
                 ctx.save();
-                // Ajustamos al tamaño real aplicando la escala
+                // Adjust to real size by applying scale
                 // El sprite es de 16x32, con SCALE=2 se dibujará a 32x64 píxeles
                 const renderScale = SCALE;
                 
-                // Ponemos el origen en los pies del personaje (el centro de la base)
+                // Set origin at character feet (center of base)
                 ctx.translate(x, y);
 
-                // Sombra general en los pies
+                // Shadow at feet
                 ctx.fillStyle = 'rgba(0,0,0,0.2)';
                 ctx.beginPath();
                 ctx.ellipse(0, 0, 8 * renderScale, 3 * renderScale, 0, 0, Math.PI * 2);
@@ -417,7 +495,7 @@
                 ctx.save();
                 ctx.translate(x, y);
 
-                // Solo dibujamos el background completo
+                // Only draw the full background
                 if (type === 'background') {
                     ctx.drawImage(this.sprites.background, 0, 0);
                 }
@@ -426,15 +504,15 @@
             }
         }
 
-        // Clase Personaje
+        // Character class
         class Character {
             constructor(x, y, id = 0) {
-                this.id = id; this.name = "Personaje "+(id+1); // Para darles distinto aspecto
+                this.id = id; this.name = "Character "+(id+1); // To give them different appearances
                 this.x = x;
                 this.y = y;
                 this.targetX = x;
                 this.targetY = y;
-                this.path = []; // Nueva propiedad para la ruta
+                this.path = []; // New property for the path
                 this.action = ACTIONS.IDLE;
                 this.facing = 'down';
                 this.frame = 0;
@@ -442,14 +520,14 @@
                 this.actionTimer = 0;
                 this.nextActionTime = 200;
                 this.sitting = false;
-                this.isWaiting = false; // Flag para instrucciones de Gemini
+                this.isWaiting = false; // Flag for AI Director instructions
                 this.targetTileX = null;
                 this.targetTileY = null;
                 this.lastX = x;
                 this.lastY = y;
                 this.stuckTimer = 0;
                 
-                // Aspecto aleatorio basado en el ID
+                // Random appearance based on ID
                 this.outfitIndex = this.id % 6 + 1; // Outfit1 a Outfit6
                 this.hairIndex = this.id % 8; // 0 a 7
             }
@@ -472,12 +550,12 @@
 
                 if (this.action === ACTIONS.WALKING && this.path && this.path.length > 0) {
                     const targetTile = this.path[0];
-                    // El tile central
+                    // Center tile
                     const targetPixelX = (targetTile.x * GRID_SIZE) + (GRID_SIZE / 2);
                     const targetPixelY = (targetTile.y * GRID_SIZE) + (GRID_SIZE / 2);
 
-                    // ABRIR PUERTA ANTICIPADAMENTE:
-                    // Si el tile al que vamos (o el siguiente) es una puerta, la abrimos ya mientras caminamos hacia ella.
+                    // OPEN DOOR IN ADVANCE:
+                    // If the tile we are going to (or the next) is a door, open it while walking towards it.
                     let nextDoorTile = null;
                     if (COLLISION_MAP[targetTile.y][targetTile.x] === 2) {
                         nextDoorTile = targetTile;
@@ -519,12 +597,12 @@
                         this.x = targetPixelX;
                         this.y = targetPixelY;
                         
-                        this.path.shift(); // Avanzar al siguiente nodo
+                        this.path.shift(); // Advance to next node
                         
                         if (this.path.length === 0) {
-                            // Llegó al final de la ruta planificada
+                            // Reached end of planned path
                             if (COLLISION_MAP[targetTile.y][targetTile.x] === 3) {
-                                // Verificar si la silla ya está ocupada por otro personaje
+                                // Check if chair is already occupied by another character
                                 const chairOccupied = characters.some(c => 
                                     c !== this && 
                                     c.action === ACTIONS.SITTING && 
@@ -533,20 +611,20 @@
                                 );
                                 
                                 if (chairOccupied) {
-                                    // La silla está ocupada, mostrar mensaje y buscar otra
+                                    // Chair is occupied, show message and find another
                                     this.isTalking = true;
-                                    this.bubbleText = "Ocupada...";
+                                    this.bubbleText = "Taken...";
                                     this.bubbleTimer = 60;
                                     
-                                    // La silla está ocupada, buscar otra silla libre cercana
+                                    // Chair is occupied, find nearest free chair
                                     const freeChair = this.findNearestFreeChair(targetTile.x, targetTile.y);
                                     if (freeChair) {
                                         this.moveTo(freeChair.x * GRID_SIZE + GRID_SIZE / 2, freeChair.y * GRID_SIZE + GRID_SIZE / 2);
                                         return;
                                     } else {
-                                        // No hay sillas libres, quedarse de pie
+                                        // No free chairs, stay standing
                                         this.isTalking = true;
-                                        this.bubbleText = "No hay sitio";
+                                        this.bubbleText = "No space";
                                         this.bubbleTimer = 60;
                                         this.action = ACTIONS.IDLE;
                                         this.sitting = false;
@@ -559,11 +637,11 @@
                                 this.action = ACTIONS.SITTING;
                                 this.sitting = true;
                                 this.actionTimer = 0;
-                                // Sentado un buen rato
+                                // Sitting for a while
                                 this.nextActionTime = 500 + Math.random() * 500;
                                 
-                                // Mirar hacia la mesa dependiendo de dónde estamos:
-                                // Escaneamos un radio de 2 tiles para encontrar el obstáculo (mesa) más cercano
+                                // Face the desk depending on where we are:
+                                // Scan a 2-tile radius to find the nearest obstacle (desk)
                                 let deskDir = null;
                                 let minDeskDist = Infinity;
                                 for(let dy = -2; dy <= 2; dy++) {
@@ -590,7 +668,7 @@
                                 if (deskDir) {
                                     this.facing = deskDir;
                                 } else {
-                                    this.facing = 'up'; // Por defecto la mayoría de sillas miran hacia arriba
+                                    this.facing = 'up'; // By default most chairs face up
                                 }
                             } else {
                                 this.action = ACTIONS.IDLE;
@@ -600,11 +678,11 @@
                             }
                         }
                     } else {
-                        // Avance
+                        // Advance
                         this.x += (dx / distance) * this.speed;
                         this.y += (dy / distance) * this.speed;
                         
-                        // Determinar dirección basada en delta dominant
+                        // Determine direction based on dominant delta
                         if (Math.abs(dx) > Math.abs(dy)) {
                             this.facing = dx > 0 ? 'right' : 'left';
                         } else {
@@ -616,7 +694,7 @@
                            this.action === ACTIONS.DRINKING ||
                            this.action === ACTIONS.PHONE ||
                            this.action === ACTIONS.SITTING) {
-                    // Acciones estáticas
+                    // Static actions
                     if (this.actionTimer > this.nextActionTime + 150 && !this.isWaiting) {
                         this.action = ACTIONS.IDLE;
                         this.sitting = false;
@@ -624,7 +702,7 @@
                         this.nextActionTime = 100 + Math.random() * 200;
                     }
                 } else if (this.action === ACTIONS.IDLE && !this.sitting) {
-                    // Cambiar acción aleatoriamente
+                    // Change action randomly
                     if (this.actionTimer > this.nextActionTime && !this.isWaiting) {
                         this.chooseRandomAction();
                     }
@@ -641,25 +719,25 @@
                     this.isTalking = true;
                     this.bubbleTimer = 200 + Math.random() * 100;
                     
-                    let texts = ["¿Hola?", "¡Hecho!", "...", "Revisando", "OK", "¿Qué tal?", "Mmm", "¡Vamos!"];
+                    let texts = ["Hello?", "Done!", "...", "Checking", "OK", "How are you?", "Mmm", "Let's go!"];
                     
                     if (this.role) {
-                        texts.push(`Soy ${this.role}`);
-                        texts.push(`Cosas de ${this.role}...`);
+                        texts.push(`I am ${this.role}`);
+                        texts.push(`Stuff about ${this.role}...`);
                     }
 
-                    if (this.personality === 'Trabajador') {
-                        texts.push("Mucho trabajo", "Focus...", "Productividad", "Sin pausa");
-                    } else if (this.personality === 'Inquieto') {
-                        texts.push("No puedo parar", "A caminar", "Estirar piernas", "¿Dónde voy?");
-                    } else if (this.personality === 'Perezoso') {
-                        texts.push("Qué sueño", "El café por favor", "¿Ya es viernes?", "Zzz...");
+                    if (this.personality === 'Worker') {
+                        texts.push("Lots of work", "Focus...", "Productivity", "No breaks");
+                    } else if (this.personality === 'Restless') {
+                        texts.push("Can't stop", "Going for a walk", "Stretch legs", "Where to?");
+                    } else if (this.personality === 'Lazy') {
+                        texts.push("So sleepy", "Coffee please", "Is it Friday yet?", "Zzz...");
                     }
 
                     this.bubbleText = texts[Math.floor(Math.random() * texts.length)];
                 }
 
-                // Failsafe anti-bugs: si parece caminar pero no avanza, forzar nueva ruta
+                // Failsafe anti-bug: if it seems to walk but does not advance, force new path
                 if (!this.isWaiting) {
                     if (this.action === ACTIONS.WALKING) {
                         const moved = Math.abs(this.x - this.lastX) + Math.abs(this.y - this.lastY);
@@ -691,14 +769,14 @@
                     ACTIONS.PHONE
                 ];
                 
-                let weights = [0.4, 0.25, 0.1, 0.15, 0.1]; // Default (balanceado)
+                let weights = [0.4, 0.25, 0.1, 0.15, 0.1]; // Default (balanced)
                 
                 // Adjust weights based on personality
-                if (this.personality === 'Trabajador') {
-                    weights = [0.2, 0.6, 0.05, 0.1, 0.05]; // Mucho trabajar
-                } else if (this.personality === 'Inquieto') {
+                if (this.personality === 'Worker') {
+                    weights = [0.2, 0.6, 0.05, 0.1, 0.05]; // Work a lot
+                } else if (this.personality === 'Restless') {
                     weights = [0.7, 0.1, 0.1, 0.05, 0.05]; // Mucho caminar
-                } else if (this.personality === 'Perezoso') {
+                } else if (this.personality === 'Lazy') {
                     weights = [0.2, 0.1, 0.3, 0.2, 0.2]; // Mucho beber/leer/telefono
                 }
 
@@ -722,7 +800,7 @@
                     this.moveToRandomPosition();
                 }
 
-                // Actualizar UI
+                // Refresh UI
                 const currentActionEl = document.getElementById('currentAction');
                 if (currentActionEl) {
                     currentActionEl.textContent = this.getActionName(selectedAction);
@@ -773,7 +851,7 @@
             }
 
             moveToRandomPosition() {
-                if (this.defaultRoom && this.defaultRoom !== "" && this.defaultRoom !== "Ninguna") {
+                if (this.defaultRoom && this.defaultRoom !== "" && this.defaultRoom !== "None") {
                     if (Math.random() < 0.7 && window.roomsInfo) {
                         const room = window.roomsInfo.find(r => r.name === this.defaultRoom);
                         if (room && room.tiles && room.tiles.length > 0) {
@@ -1007,10 +1085,10 @@
                     let char = new Character(0, 0, i);
                     
                     if (charConfig) {
-                        char.name = charConfig.name || ("Personaje " + (i + 1));
+                        char.name = charConfig.name || ("Character " + (i + 1));
                         char.role = charConfig.role || "";
-                        char.defaultRoom = "";
-                        char.personality = "Trabajador";
+                        char.defaultRoom = charConfig.room || "";
+                        char.personality = "Worker";
                         // Use server position or random
                         if (charConfig.x !== undefined && charConfig.y !== undefined) {
                             char.x = charConfig.x;
@@ -1021,7 +1099,7 @@
                             char.y = rt.y * GRID_SIZE + GRID_SIZE/2;
                         }
                     } else {
-                        char.name = "Personaje " + (i + 1);
+                        char.name = "Character " + (i + 1);
                         let rt = char.getValidRandomTile(true);
                         char.x = rt.x * GRID_SIZE + GRID_SIZE/2;
                         char.y = rt.y * GRID_SIZE + GRID_SIZE/2;
@@ -1097,11 +1175,11 @@
                 requestAnimationFrame(gameLoop);
                 return;
             }
-        // Limpiar canvas (fondo general oscuro)
+        // Clear canvas (fondo general oscuro)
             ctx.fillStyle = '#1e1e2e';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Actualizar todos los personajes
+            // Refresh todos los personajes
             characters.forEach(char => char.update());
 
             // Dibujar oficina
@@ -1114,7 +1192,7 @@
             sortedCharacters.forEach(char => char.draw(spriteManager));
 
 
-            // Actualizar timer
+            // Refresh timer
             const elapsed = Math.floor((Date.now() - startTime) / 1000);
             document.getElementById('timer').textContent = elapsed;
 
@@ -1134,19 +1212,19 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // --- Funciones para el Chat AI ---
+        // --- AI Chat Functions ---
 
-        // Leer mapeo del dashboard si existe, sino usar estáticos
+        // Read room mapping from dashboard if exists, otherwise use static defaults
         window.roomsInfo = [];
         try {
             const savedRooms = localStorage.getItem('pixelOfficeRooms');
             if (savedRooms) {
                 const parsedRooms = JSON.parse(savedRooms);
-                // Convertir del formato pintado (array de tiles) al formato rápido (un punto x,y central)
+                // Convert from painted format (array of tiles) to quick format (a central x,y point)
                 window.roomsInfo = parsedRooms.map(r => {
                     let centerX = 0, centerY = 0;
                     if(r.tiles.length > 0) {
-                        // Tomar una tile al azar de la sala o la primera para ir ahí
+                        // Pick a random tile from the room or use the first one
                         const t = r.tiles[Math.floor(Math.random() * r.tiles.length)];
                         centerX = t.x;
                         centerY = t.y;
@@ -1158,10 +1236,11 @@
 
         if (window.roomsInfo.length === 0) {
             window.roomsInfo = [
-                { id: 1, name: 'Sala de reuniones', x: 10, y: 14 },
-                { id: 2, name: 'Escritorio 1', x: 3, y: 5 },
-                { id: 3, name: 'Cafetería', x: 4, y: 4 },
-                { id: 4, name: 'Baño', x: 16, y: 5 }
+                { id: 1, name: 'Concierge', x: 10, y: 12 },
+                { id: 2, name: 'Executive Suite', x: 10, y: 3 },
+                { id: 3, name: 'War Room', x: 15, y: 6 },
+                { id: 4, name: 'Archive', x: 3, y: 18 },
+                { id: 5, name: 'Lounge', x: 10, y: 21 }
             ];
         }
 
@@ -1216,6 +1295,43 @@
             setTimeout(() => {
                 history.scrollTop = history.scrollHeight;
             }, 10);
+        }
+
+        // Nocturnal Briefing — Charon delivers AI-generated status report
+        async function getNocturnalBriefing() {
+            const btn = document.getElementById('briefingBtn');
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Charon is preparing the briefing...';
+            
+            try {
+                const res = await fetch('/api/briefing/ai');
+                if (!res.ok) throw new Error('Briefing API error: ' + res.status);
+                const data = await res.json();
+                
+                // Format the briefing text with line breaks for HTML
+                const formatted = (data.briefing || 'No briefing available.').replace(/\n/g, '<br>');
+                
+                // Add as a special Charon briefing message
+                const container = document.getElementById('chatMessages');
+                const history = document.getElementById('chatHistory');
+                const div = document.createElement('div');
+                div.className = 'flex flex-col p-4 rounded-lg border bg-gradient-to-br from-purple-900/40 to-blue-900/30 border-purple-500/40 mr-8 w-full';
+                div.innerHTML = `
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-purple-300">🕯️ Charon — Nocturnal Briefing</span>
+                        <span class="text-[10px] text-gray-500 ml-auto">${new Date(data.timestamp).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'})}</span>
+                    </div>
+                    <div class="text-sm text-gray-200 leading-relaxed">${formatted}</div>
+                `;
+                container.appendChild(div);
+                setTimeout(() => { history.scrollTop = history.scrollHeight; }, 10);
+            } catch (err) {
+                addChatMessage('System', 'Failed to get briefing: ' + err.message, 'ai');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            }
         }
 
         // Poblar botones de personajes
@@ -1290,21 +1406,21 @@
             
             if (!command) return;
             
-            addChatMessage('Tú', command, 'user');
+            addChatMessage('You', command, 'user');
             input.value = '';
             
-            // Integación Real Gemini API
-            const apiKey = localStorage.getItem('pixel_gemini_api_key');
+            // Real Ollama API Integration
+            // No client-side key needed - server proxies to Ollama
             
-            if (!apiKey) {
+            if (false) { // Always use Ollama proxy now
                 // Fallback Simulado Original
-                addChatMessage('Sistema', 'API Key de Gemini no configurada. Usando el modo básico...', 'ai');
+                addChatMessage('System', 'Ollama API not configured. Using basic mode...', 'ai');
                 setTimeout(() => {
                     if (characters.length > 0) {
-                        // Buscar si se mencionó a todos
-                        const isAll = command.toLowerCase().includes('todos');
+                        // Check if "everyone" was mentioned
+                        const isAll = command.toLowerCase().includes('everyone');
                         
-                        // Buscar la sala
+                        // Find the room
                         let roomDest = null;
                         for (let r of window.roomsInfo) {
                             if (command.toLowerCase().includes(r.name.toLowerCase())) {
@@ -1326,60 +1442,52 @@
                             });
                             addChatMessage('AI Director', 'Ok', 'ai');
                         } else {
-                            addChatMessage('AI Director', 'No te he entendido bien... (Falta sala)', 'ai');
+                            addChatMessage('AI Director', "I didn't understand... (Missing room)", 'ai');
                         }
                     }
                 }, 1000);
                 return;
             }
 
-            // Llamada a Gemini 2.5 Flash
-            addChatMessage('AI Director', 'Pensando...', 'ai');
+            // Calling Ollama API
+            addChatMessage('AI Director', 'Thinking...', 'ai');
             
             const charsContext = characters.map(c => c.name).join(', ');
             const roomsContext = window.roomsInfo.map(r => r.name).join(', ');
             
-            const systemPrompt = `Eres un sistema de navegación para una oficina virtual.
-Recibirás una instrucción de un usuario y debes extraer qué personajes van a qué salas.
-Personajes disponibles: [${charsContext}].
-Salas disponibles: [${roomsContext}]. 
-Devuelve ÚNICAMENTE un array en JSON válido con las acciones.
-Si dice "todos" o similar, incluye un elemento de acción individual para cada uno de los personajes disponibles.
-Si el usuario indica que "esperen", "se queden" o "no salgan", añade la propiedad "esperar": true.
-Si el usuario especifica explícitamente "sentarse" o "en una silla", añade la propiedad "sentarse": true.
-Formato de ejemplo:
-[{"personaje": "Rachel", "sala": "Sala de reuniones", "esperar": true, "sentarse": true}, {"personaje": "Juan", "sala": "Cafetería"}]
-No escribas NADA MÁS que el JSON crudo, sin markdown de bloques de código.`;
+            const systemPrompt = `You are a navigation system for a virtual office.
+You will receive an instruction from a user and must extract which characters go to which rooms.
+Available characters: [${charsContext}].
+Available rooms: [${roomsContext}]. 
+Return ONLY a valid JSON array with the actions.
+If they say "everyone" or similar, include an individual action item for each available character.
+If the user indicates "wait", "stay" or "don't go out", add the property "wait": true.
+If the user explicitly specifies "sit" or "in a chair", add the property "sit": true.
+Example format:
+[{"character": "Rachel", "room": "Concierge", "wait": true, "sit": true}, {"character": "Juan", "room": "Lounge"}]
+Write NOTHING MORE than raw JSON, without code block markdown.`;
 
-            const requestBody = {
-                contents: [{ role: "user", parts: [{ text: command }] }],
-                systemInstruction: { parts: [{ text: systemPrompt }] },
-                generationConfig: { 
-                    responseMimeType: "application/json",
-                    temperature: 0.1
-                }
-            };
-
-            fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+            // Call Ollama API via server-side proxy
+            fetch('/api/ai/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestBody)
+                body: JSON.stringify({ prompt: command, systemPrompt: systemPrompt })
             })
             .then(res => {
                 if(!res.ok) throw new Error('API Error');
                 return res.json();
             })
             .then(data => {
-                const responseText = data.candidates[0].content.parts[0].text;
+                const responseText = data.response || '';
                 let actions = [];
                 try {
                     actions = JSON.parse(responseText.trim());
                 } catch(e) {
-                    throw new Error("No se pudo parsear JSON");
+                    throw new Error("Could not parse JSON");
                 }
 
                 if(!Array.isArray(actions) || actions.length === 0) {
-                     addChatMessage('AI Director', 'No entendí a dónde mandarlos.', 'ai');
+                     addChatMessage('AI Director', "I didn't understand where to send them.", 'ai');
                      return;
                 }
 
@@ -1391,18 +1499,18 @@ No escribas NADA MÁS que el JSON crudo, sin markdown de bloques de código.`;
                 };
 
                 actions.forEach(action => {
-                    const charObj = characters.find(c => c.name.toLowerCase() === action.personaje.toLowerCase());
+                    const charObj = characters.find(c => c.name.toLowerCase() === action.character.toLowerCase());
                     let roomObj = null;
-                    if(action.sala) {
-                        roomObj = window.roomsInfo.find(r => r.name.toLowerCase() === action.sala.toLowerCase());
+                    if(action.room) {
+                        roomObj = window.roomsInfo.find(r => r.name.toLowerCase() === action.room.toLowerCase());
                     }
                     
                     if(charObj) {
-                        charObj.isWaiting = true; // Si recibe orden de Gemini, la cumple y se queda esperando (no vuelve al Idle random)
+                        charObj.isWaiting = true; // If it receives an order from AI Director, it complies and waits (does not return to random idle)
 
                         if (roomObj && roomObj.tiles && roomObj.tiles.length > 0) {
                             let possibleTiles = roomObj.tiles;
-                            let userRequestedToSit = (action.sentarse || action.sentarse === "true");
+                            let userRequestedToSit = (action.sit || action.sit === "true");
                             
                             // Si pide sentarse, priorizamos las sillas (valor 3 en COLLISION_MAP)
                             if (userRequestedToSit) {
@@ -1442,7 +1550,7 @@ No escribas NADA MÁS que el JSON crudo, sin markdown de bloques de código.`;
                             } else {
                                 charObj.moveTo(rt.x * GRID_SIZE + GRID_SIZE / 2, rt.y * GRID_SIZE + GRID_SIZE / 2);
                             }
-                        } else if (action.sentarse || action.sentarse === "true") {
+                        } else if (action.sit || action.sit === "true") {
                             // Buscar silla más cercana a la posición actual del personaje
                             let closestChair = null;
                             let minDistance = Infinity;
@@ -1468,23 +1576,23 @@ No escribas NADA MÁS que el JSON crudo, sin markdown de bloques de código.`;
                     }
                 });
 
-                // Eliminar mensaje de "Pensando..." y poner el Ok
+                // Eliminar mensaje de "Thinking..." y poner el Ok
                 const msgs = document.getElementById('chatMessages');
-                if(msgs.lastChild && msgs.lastChild.textContent.includes('Pensando...')) {
+                if(msgs.lastChild && msgs.lastChild.textContent.includes('Thinking...')) {
                     msgs.lastChild.remove();
                 }
                 
-                addChatMessage('AI Director', `Ok. Procesado por Gemini 2.0 Flash para ${actions.length} acciones.`, 'ai');
+                addChatMessage('AI Director', `Ok. Processed by Ollama for ${actions.length} actions.`, 'ai');
             })
             .catch(err => {
                 console.error(err);
                 const msgs = document.getElementById('chatMessages');
-                if(msgs.lastChild && msgs.lastChild.textContent.includes('Pensando...')) msgs.lastChild.remove();
-                addChatMessage('Sistema', 'Error de conexión con Gemini. Revisa tu API Key.', 'ai');
+                if(msgs.lastChild && msgs.lastChild.textContent.includes('Thinking...')) msgs.lastChild.remove();
+                addChatMessage('System', 'Connection error with Ollama. Check server availability.', 'ai');
             });
         });
 
-        // Guardar estado en SERVIDOR cada 5 segundos (compartido para todos)
+        // Save state to SERVER every 5 seconds (shared for all)
         setInterval(async () => {
             if (typeof characters !== 'undefined' && characters.length > 0) {
                 try {
@@ -1511,12 +1619,12 @@ No escribas NADA MÁS que el JSON crudo, sin markdown de bloques de código.`;
             }
         }, 5000);
 
-        // NOTA: Eliminado el polling de sincronización de posiciones desde servidor
-        // porque causaba "teletransporte" de personajes entre clientes.
-        // Cada cliente mantiene su propia simulación local.
-        // Las posiciones se guardan en servidor pero no se fuerzan desde él.
+        // NOTE: Removed position sync polling from server
+        // because it caused "teleporting" of characters between clients.
+        // Each client maintains its own local simulation.
+        // Positions are saved to server but not forced from it.
 
-        // Cargar mensajes de agentes desde API (como burbujas temporales)
+        // Load agent messages from API (as temporary bubbles)
         let lastAgentMessages = {};
         async function loadAgentMessages() {
             try {
@@ -1525,7 +1633,7 @@ No escribas NADA MÁS que el JSON crudo, sin markdown de bloques de código.`;
                 
                 characters.forEach(char => {
                     const newMsg = messages[char.id];
-                    // Solo mostrar si el mensaje cambió y no está vacío
+                    // Only show if message changed and is not empty
                     if (newMsg && newMsg.trim() !== '' && newMsg !== lastAgentMessages[char.id]) {
                         lastAgentMessages[char.id] = newMsg;
                         // Activar burbuja del juego (temporal, desaparece sola)
@@ -1535,11 +1643,11 @@ No escribas NADA MÁS que el JSON crudo, sin markdown de bloques de código.`;
                     }
                 });
             } catch (e) {
-                // Silenciar errores de polling
+                // Silence polling errors
             }
         }
         
-        // Cargar comandos del servidor para mover agentes
+        // Load commands from server to move agents
         async function loadAgentCommands() {
             try {
                 for (let char of characters) {
@@ -1547,41 +1655,41 @@ No escribas NADA MÁS que el JSON crudo, sin markdown de bloques de código.`;
                     const cmd = await response.json();
                     
                     if (cmd && cmd.action) {
-                        console.log(`[Comando recibido] ${char.name}:`, cmd);
+                        console.log(`[Command received] ${char.name}:`, cmd);
                         
                         if (cmd.action === 'move' && cmd.tileX !== undefined && cmd.tileY !== undefined) {
                             const pixelX = cmd.tileX * GRID_SIZE + GRID_SIZE / 2;
                             const pixelY = cmd.tileY * GRID_SIZE + GRID_SIZE / 2;
                             
-                            // Verificar si ya llegó al destino
+                            // Check if already at destination
                             const currentTileX = Math.floor(char.x / GRID_SIZE);
                             const currentTileY = Math.floor(char.y / GRID_SIZE);
                             
                             if (currentTileX === cmd.tileX && currentTileY === cmd.tileY) {
-                                // Ya llegó, confirmar comando
+                                // Arrived, confirm command
                                 fetch(`/api/agent/${char.id}/command/ack`, { method: 'POST' });
                                 
-                                // Si el comando incluye sentarse después de mover
+                                // If command includes sitting after moving
                                 if (cmd.sitAfter) {
                                     char.action = ACTIONS.SITTING;
                                     char.sitting = true;
                                     
-                                    // Notificar al backend que llegó y está sentado
+                                    // Notify backend of arrival and sitting
                                     fetch(`/api/agent/${char.id}/arrived`, { 
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ location: cmd.sitAfter ? 'office' : 'reception' })
+                                        body: JSON.stringify({ location: cmd.sitAfter ? 'office' : 'concierge' })
                                     });
                                 } else {
-                                    // Notificar llegada sin sentarse
+                                    // Notify arrival without sitting
                                     fetch(`/api/agent/${char.id}/arrived`, { 
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ location: 'reception' })
+                                        body: JSON.stringify({ location: 'concierge' })
                                     });
                                 }
                             } else {
-                                // Moverse al destino
+                                // Move to destination
                                 char.moveTo(pixelX, pixelY);
                                 char.isWaiting = true;
                             }
@@ -1614,7 +1722,7 @@ No escribas NADA MÁS que el JSON crudo, sin markdown de bloques de código.`;
             }
         }
         
-        // Poll cada 1 segundo para respuesta más rápida
+        // Poll every 1 second for faster response
         setInterval(() => {
             loadAgentMessages();
             loadAgentCommands();
@@ -1629,8 +1737,8 @@ No escribas NADA MÁS que el JSON crudo, sin markdown de bloques de código.`;
         const viewLog = document.getElementById('viewLog');
         const logEntries = document.getElementById('logEntries');
 
-        // Filtros de log
-        let logFilters = { 0: true, 1: true, 2: true, 3: true }; // Dustin, Marian y Pep visibles por defecto
+        // Log filters
+        let logFilters = { 0: true, 1: true, 2: true, 3: true }; // Dustin, Marian y Pep visible by default
         let allLogs = []; // Cache de todos los logs
 
         const filterButtons = {
@@ -1648,7 +1756,7 @@ No escribas NADA MÁS que el JSON crudo, sin markdown de bloques de código.`;
         function toggleLogFilter(agentId) {
             logFilters[agentId] = !logFilters[agentId];
             updateFilterButtons();
-            // Re-renderizar logs con filtros aplicados
+            // Re-render logs with applied filters
             renderLogs();
         }
 
@@ -1670,8 +1778,8 @@ No escribas NADA MÁS que el JSON crudo, sin markdown de bloques de código.`;
             if (filteredLogs.length === 0) {
                 const activeFilters = Object.values(logFilters).some(Boolean);
                 const noLogsMsg = (!activeFilters) 
-                    ? 'Selecciona al menos un filtro' 
-                    : 'No hay entradas para este filtro';
+                    ? 'Select at least one filter' 
+                    : 'No entries for this filter';
                 logEntries.innerHTML = `<div style="color: #6b7280; text-align: center; padding: 20px;">${noLogsMsg}</div>`;
                 return;
             }
@@ -1687,11 +1795,11 @@ No escribas NADA MÁS que el JSON crudo, sin markdown de bloques de código.`;
                     1: { name: 'Marian', color: '#f97316', text: '#fdba74' },
                     2: { name: 'Pep', color: '#22c55e', text: '#4ade80' },
                     3: { name: 'Doc', color: '#818cf8', text: '#a5b4fc' }
-                }[log.agent] || { name: `Agente ${log.agent}`, color: '#6b7280', text: '#9ca3af' };
+                }[log.agent] || { name: `Agent ${log.agent}`, color: '#6b7280', text: '#9ca3af' };
                 
                 entry.style.borderLeftColor = agentMeta.color;
                 
-                const msg = log.msg || log.action || 'Sin mensaje';
+                const msg = log.msg || log.action || 'No message';
                 
                 entry.innerHTML = `
                     <span style="color: #6b7280; font-size: 10px; white-space: nowrap;">${log.time}</span>
@@ -1702,38 +1810,64 @@ No escribas NADA MÁS que el JSON crudo, sin markdown de bloques de código.`;
                 logEntries.appendChild(entry);
             });
             
-            // Scroll al final
+            // Scroll to bottom
             const container = document.getElementById('logContainer');
             if (container) container.scrollTop = container.scrollHeight;
         }
 
-        // Cambiar entre pestañas
-        tabChat.addEventListener('click', () => {
-            tabChat.classList.add('text-blue-400', 'border-b-2', 'border-blue-400');
-            tabChat.classList.remove('text-gray-400');
-            tabLog.classList.remove('text-blue-400', 'border-b-2', 'border-blue-400');
-            tabLog.classList.add('text-gray-400');
-            viewChat.classList.remove('hidden');
+        const tabEmail = document.getElementById('tabEmail');
+        const viewEmail = document.getElementById('viewEmail');
+        const tabContacts = document.getElementById('tabContacts');
+        const viewContacts = document.getElementById('viewContacts');
+
+        function setActiveTab(active) {
+            // Reset all tabs
+            [tabChat, tabLog, tabEmail, tabContacts].forEach(t => {
+                t.classList.remove('text-blue-400', 'border-b-2', 'border-blue-400');
+                t.classList.add('text-gray-400');
+            });
+            // Hide all views
+            viewChat.classList.add('hidden');
             viewLog.classList.add('hidden');
+            viewEmail.classList.add('hidden');
+            viewContacts.classList.add('hidden');
+            // Activate selected
+            active.classList.add('text-blue-400', 'border-b-2', 'border-blue-400');
+            active.classList.remove('text-gray-400');
+        }
+
+        // Switch between tabs
+        tabChat.addEventListener('click', () => {
+            setActiveTab(tabChat);
+            viewChat.classList.remove('hidden');
         });
 
         tabLog.addEventListener('click', () => {
-            tabLog.classList.add('text-blue-400', 'border-b-2', 'border-blue-400');
-            tabLog.classList.remove('text-gray-400');
-            tabChat.classList.remove('text-blue-400', 'border-b-2', 'border-blue-400');
-            tabChat.classList.add('text-gray-400');
-            viewChat.classList.add('hidden');
+            setActiveTab(tabLog);
             viewLog.classList.remove('hidden');
             refreshLog();
         });
 
-        // Cargar log desde API (formato consistente)
+        tabEmail.addEventListener('click', () => {
+            setActiveTab(tabEmail);
+            viewEmail.classList.remove('hidden');
+            refreshEmail();
+        });
+
+        tabContacts.addEventListener('click', () => {
+            setActiveTab(tabContacts);
+            viewContacts.classList.remove('hidden');
+            loadSyncStatus();
+            document.getElementById('contactSearch').focus();
+        });
+
+        // Load log from API (consistent format)
         async function refreshLog() {
             try {
                 const response = await fetch('/api/log');
                 const logs = await response.json();
                 
-                // Guardar en cache
+                // Save to cache
                 allLogs = logs;
                 
                 if (!Object.values(logFilters).some(Boolean)) {
@@ -1741,13 +1875,13 @@ No escribas NADA MÁS que el JSON crudo, sin markdown de bloques de código.`;
                     updateFilterButtons();
                 }
                 
-                // Renderizar con filtros aplicados
+                // Render with applied filters
                 renderLogs();
                 
             } catch (e) {
-                console.error('Error cargando log:', e);
+                console.error('Error loading log:', e);
                 const errMsg = (e && e.message) ? e.message : 'Desconocido';
-                logEntries.innerHTML = `<div style="color: #ef4444; text-align: center; padding: 20px;">Error cargando log<br><span style='font-size:11px;color:#9ca3af;'>${errMsg}</span></div>`;
+                logEntries.innerHTML = `<div style="color: #ef4444; text-align: center; padding: 20px;">Error loading log<br><span style='font-size:11px;color:#9ca3af;'>${errMsg}</span></div>`;
                 setTimeout(() => {
                     if (!viewLog.classList.contains('hidden')) {
                         refreshLog();
@@ -1757,10 +1891,10 @@ No escribas NADA MÁS que el JSON crudo, sin markdown de bloques de código.`;
         }
 
         function clearLog() {
-            logEntries.innerHTML = '<div class="text-gray-500 text-center py-4">Log limpiado</div>';
+            logEntries.innerHTML = '<div class="text-gray-500 text-center py-4">Log cleared</div>';
         }
 
-        // Actualizar log cada 2 segundos si está visible
+        // Refresh log every 2 seconds if visible
         setInterval(() => {
             if (!viewLog.classList.contains('hidden')) {
                 refreshLog();
@@ -1769,7 +1903,355 @@ No escribas NADA MÁS que el JSON crudo, sin markdown de bloques de código.`;
 
         updateFilterButtons();
 
-        // Iniciar
+        // === Email Panel Logic ===
+        let emailCache = [];
+        let emailRefreshTimer = null;
+        let emailAccounts = [];
+        let emailCategories = [];
+        let selectedAccountId = null;
+        let selectedCategory = 'all';
+
+        async function loadEmailAccounts() {
+            try {
+                const res = await fetch('/api/email/accounts');
+                const data = await res.json();
+                emailAccounts = data.accounts || [];
+                emailCategories = data.categories || [];
+                renderAccountChips();
+            } catch (e) {
+                console.error('Failed to load email accounts:', e);
+            }
+        }
+
+        function renderAccountChips() {
+            const chipsEl = document.getElementById('emailAccountChips');
+            if (!chipsEl) return;
+            const filtered = selectedCategory === 'all'
+                ? emailAccounts
+                : emailAccounts.filter(a => a.category === selectedCategory);
+            if (!filtered.length) {
+                chipsEl.innerHTML = '<span style="color: #6b7280; font-size: 11px; padding: 4px 8px;">No accounts in this category</span>';
+                return;
+            }
+            chipsEl.innerHTML = filtered.map(a => {
+                const isSelected = a.id === selectedAccountId;
+                const bg = isSelected ? (a.color || '#2563eb') : '#374151';
+                const opacity = a.configured ? '1' : '0.4';
+                return `<button class="email-account-chip" data-id="${a.id}" style="white-space: nowrap; font-size: 11px; padding: 5px 10px; border-radius: 4px; border: none; cursor: pointer; background: ${bg}; color: white; opacity: ${opacity}; display: flex; align-items: center; gap: 4px;">
+                    <span>${a.icon || '📧'}</span>
+                    <span>${escapeHtml(a.name)}</span>
+                    <span id="chip-unread-${a.id}" style="font-size: 9px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 1px 5px; display: none;"></span>
+                </button>`;
+            }).join('');
+            chipsEl.querySelectorAll('.email-account-chip').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id = el.dataset.id;
+                    const acct = emailAccounts.find(a => a.id === id);
+                    if (acct && !acct.configured) return;
+                    selectedAccountId = id;
+                    renderAccountChips();
+                    refreshEmail();
+                });
+            });
+        }
+
+        // Category tab handlers
+        document.querySelectorAll('.email-cat-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.email-cat-btn').forEach(b => {
+                    b.style.background = '#374151';
+                    b.style.color = '#d1d5db';
+                });
+                btn.style.background = '#2563eb';
+                btn.style.color = 'white';
+                selectedCategory = btn.dataset.cat;
+                selectedAccountId = null;
+                renderAccountChips();
+                // Auto-select first account in category
+                const filtered = selectedCategory === 'all'
+                    ? emailAccounts.filter(a => a.configured)
+                    : emailAccounts.filter(a => a.category === selectedCategory && a.configured);
+                if (filtered.length) {
+                    selectedAccountId = filtered[0].id;
+                    renderAccountChips();
+                    refreshEmail();
+                } else {
+                    const listEl = document.getElementById('emailList');
+                    if (listEl) listEl.innerHTML = '<div style="padding: 16px; font-size: 12px; color: #6b7280; text-align: center;">No configured accounts in this category</div>';
+                }
+            });
+        });
+
+        async function refreshEmail() {
+            const listEl = document.getElementById('emailList');
+            if (!listEl) return;
+            if (!selectedAccountId) {
+                listEl.innerHTML = '<div style="padding: 16px; font-size: 12px; color: #6b7280; text-align: center;">Select an account to view inbox</div>';
+                return;
+            }
+            const acct = emailAccounts.find(a => a.id === selectedAccountId);
+            listEl.innerHTML = `<div style="padding: 12px; font-size: 12px; color: #6b7280; text-align: center; border-bottom: 1px solid #374151;">${acct ? acct.icon + ' ' + escapeHtml(acct.name) : ''} — Loading...</div>`;
+            try {
+                const res = await fetch(`/api/email/inbox?limit=20&account=${selectedAccountId}`);
+                const data = await res.json();
+                if (data.error) {
+                    listEl.innerHTML = `<div class="text-red-400 text-center py-4 text-xs">Error: ${data.error}</div>`;
+                    return;
+                }
+                emailCache = data.emails || [];
+                renderEmailList(emailCache);
+            } catch (e) {
+                listEl.innerHTML = `<div class="text-red-400 text-center py-4 text-xs">Connection error: ${e.message}</div>`;
+            }
+        }
+
+        function renderEmailList(emails) {
+            const listEl = document.getElementById('emailList');
+            if (!emails.length) {
+                listEl.innerHTML = '<div class="text-gray-500 text-center py-4 text-xs">No emails found</div>';
+                return;
+            }
+            listEl.innerHTML = emails.map(e => {
+                const dateStr = e.date ? new Date(e.date).toLocaleString('en-US', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+                const unreadClass = e.seen ? 'opacity-60' : 'border-l-2 border-blue-400';
+                return `<div class="email-item p-2.5 border-b border-gray-700 cursor-pointer hover:bg-gray-700/50 transition-colors ${unreadClass}" data-id="${e.id}">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-bold text-gray-200 truncate flex-1">${escapeHtml(e.from || '?')}</span>
+                        <span class="text-[10px] text-gray-500 ml-2 flex-shrink-0">${dateStr}</span>
+                    </div>
+                    <div class="text-xs text-gray-400 truncate">${escapeHtml(e.subject || '(no subject)')}</div>
+                </div>`;
+            }).join('');
+
+            // Attach click handlers
+            listEl.querySelectorAll('.email-item').forEach(el => {
+                el.addEventListener('click', () => openEmail(el.dataset.id));
+            });
+        }
+
+        async function openEmail(id) {
+            const detailEl = document.getElementById('emailDetail');
+            const listEl = document.getElementById('emailList');
+            if (!detailEl) return;
+            detailEl.innerHTML = '<div class="text-gray-500 text-center py-4 text-xs">Loading...</div>';
+            listEl.classList.add('hidden');
+            detailEl.classList.remove('hidden');
+            document.getElementById('emailBackBtn').classList.remove('hidden');
+
+            try {
+                const acctParam = selectedAccountId ? `?account=${selectedAccountId}` : '';
+                const res = await fetch(`/api/email/${id}${acctParam}`);
+                const data = await res.json();
+                if (data.error) {
+                    detailEl.innerHTML = `<div class="text-red-400 text-center py-4 text-xs">Error: ${data.error}</div>`;
+                    return;
+                }
+                const dateStr = data.date ? new Date(data.date).toLocaleString() : '';
+                detailEl.innerHTML = `
+                    <div class="p-3 border-b border-gray-700">
+                        <div class="text-sm font-bold text-gray-100 mb-1">${escapeHtml(data.subject || '(no subject)')}</div>
+                        <div class="text-xs text-gray-400 mb-1">From: ${escapeHtml(data.from || '?')}</div>
+                        <div class="text-xs text-gray-400 mb-1">To: ${escapeHtml(data.to || '?')}</div>
+                        <div class="text-[10px] text-gray-500">${dateStr}</div>
+                    </div>
+                    <div class="p-3 text-xs text-gray-300 whitespace-pre-wrap overflow-y-auto" style="max-height: 400px;">${escapeHtml(data.body || '(empty)')}</div>
+                `;
+            } catch (e) {
+                detailEl.innerHTML = `<div class="text-red-400 text-center py-4 text-xs">Error: ${e.message}</div>`;
+            }
+        }
+
+        function closeEmail() {
+            document.getElementById('emailList').classList.remove('hidden');
+            document.getElementById('emailDetail').classList.add('hidden');
+            document.getElementById('emailBackBtn').classList.add('hidden');
+        }
+
+        async function pollUnread() {
+            try {
+                const res = await fetch('/api/email/unread/all');
+                const data = await res.json();
+                let totalUnread = 0;
+                Object.entries(data).forEach(([id, info]) => {
+                    const count = info.unread || 0;
+                    totalUnread += count;
+                    const chipBadge = document.getElementById(`chip-unread-${id}`);
+                    if (chipBadge) {
+                        if (count > 0) {
+                            chipBadge.textContent = count > 99 ? '99+' : count;
+                            chipBadge.style.display = 'inline';
+                        } else {
+                            chipBadge.style.display = 'none';
+                        }
+                    }
+                });
+                const badge = document.getElementById('emailBadge');
+                if (totalUnread > 0) {
+                    badge.textContent = totalUnread > 99 ? '99+' : totalUnread;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            } catch (e) {
+                // silently fail
+            }
+        }
+
+        function escapeHtml(s) {
+            const div = document.createElement('div');
+            div.textContent = s || '';
+            return div.innerHTML;
+        }
+
+        // Load accounts on startup, then poll unread counts
+        loadEmailAccounts();
+        pollUnread();
+        setInterval(pollUnread, 60000);
+
+        // === Contacts Panel Logic ===
+        let contactSearchTimer = null;
+
+        document.getElementById('contactSearch').addEventListener('input', (e) => {
+            clearTimeout(contactSearchTimer);
+            const term = e.target.value.trim();
+            if (term.length < 2) {
+                document.getElementById('contactList').innerHTML = '<div style="padding:16px;font-size:12px;color:#6b7280;text-align:center;">Type to search contacts...</div>';
+                return;
+            }
+            contactSearchTimer = setTimeout(() => searchContacts(term), 300);
+        });
+
+        async function searchContacts(term) {
+            const listEl = document.getElementById('contactList');
+            listEl.innerHTML = '<div style="padding:16px;font-size:12px;color:#6b7280;text-align:center;">Searching...</div>';
+            try {
+                const res = await fetch('/api/contacts/search?q=' + encodeURIComponent(term) + '&limit=20');
+                const data = await res.json();
+                if (data.error) { listEl.innerHTML = '<div style="color:#ef4444;text-align:center;padding:16px;font-size:12px;">' + data.error + '</div>'; return; }
+                renderContactList(data.results || []);
+            } catch (e) {
+                listEl.innerHTML = '<div style="color:#ef4444;text-align:center;padding:16px;font-size:12px;">Connection error</div>';
+            }
+        }
+
+        function renderContactList(contacts) {
+            const listEl = document.getElementById('contactList');
+            if (!contacts.length) {
+                listEl.innerHTML = '<div style="padding:16px;font-size:12px;color:#6b7280;text-align:center;">No contacts found</div>';
+                return;
+            }
+            listEl.innerHTML = contacts.map(c => {
+                const email = c.emails[0] || '';
+                const org = c.organizations[0] || '';
+                const platformDots = ['crm','odoo','openproject','nextcloud','paperless'].map(p => {
+                    // We don't have platform info in search results, just show CRM dot
+                    return '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#374151;margin-right:2px;" title="' + p + '"></span>';
+                }).join('');
+                return '<div class="contact-item" style="padding:10px 12px;border-bottom:1px solid #1f2937;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background=\'#1f2937\'" onmouseout="this.style.background=\'transparent\'" data-id="' + c.id + '">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">' +
+                    '<span style="font-size:12px;font-weight:bold;color:#d1d5db;">' + escapeHtml(c.displayName) + '</span>' +
+                    '<span style="font-size:10px;color:#4b5563;">' + platformDots + '</span>' +
+                    '</div>' +
+                    (email ? '<div style="font-size:10px;color:#6b7280;">' + escapeHtml(email) + '</div>' : '') +
+                    (org ? '<div style="font-size:10px;color:#4b5563;">' + escapeHtml(org) + '</div>' : '') +
+                    '</div>';
+            }).join('');
+
+            listEl.querySelectorAll('.contact-item').forEach(el => {
+                el.addEventListener('click', () => openContact(el.dataset.id));
+            });
+        }
+
+        async function openContact(id) {
+            const detailEl = document.getElementById('contactDetail');
+            const listEl = document.getElementById('contactList');
+            detailEl.innerHTML = '<div style="padding:16px;font-size:12px;color:#6b7280;text-align:center;">Loading...</div>';
+            listEl.classList.add('hidden');
+            detailEl.classList.remove('hidden');
+            document.getElementById('contactBackBtn').classList.remove('hidden');
+
+            try {
+                const res = await fetch('/api/contacts/' + id);
+                const c = await res.json();
+                if (c.error) { detailEl.innerHTML = '<div style="color:#ef4444;padding:16px;font-size:12px;">' + c.error + '</div>'; return; }
+
+                const platformBadges = Object.entries(c.platforms || {}).map(([name, info]) => {
+                    const color = info.present ? '#22c55e' : '#374151';
+                    const label = info.present ? (name + ':' + info.id) : name + ':missing';
+                    return '<span style="display:inline-flex;align-items:center;gap:4px;background:' + color + '20;border:1px solid ' + color + '40;border-radius:3px;padding:2px 6px;font-size:10px;color:' + color + ';margin-right:4px;margin-bottom:2px;">' +
+                        '<span style="width:6px;height:6px;border-radius:50%;background:' + color + ';"></span>' + label + '</span>';
+                }).join('');
+
+                const emails = (c.emails || []).map(e =>
+                    '<div style="font-size:11px;color:#9ca3af;">' + escapeHtml(e.email) + ' <span style="color:#4b5563;">(' + (e.label || 'email') + ')</span></div>'
+                ).join('');
+
+                const phones = (c.phones || []).map(p =>
+                    '<div style="font-size:11px;color:#9ca3af;">' + escapeHtml(p.phone) + ' <span style="color:#4b5563;">(' + (p.label || 'phone') + ')</span></div>'
+                ).join('');
+
+                const orgs = (c.organizations || []).map(o =>
+                    '<div style="font-size:11px;color:#9ca3af;">' + escapeHtml(o.name) + '</div>'
+                ).join('');
+
+                detailEl.innerHTML =
+                    '<div style="padding:12px;border-bottom:1px solid #1f2937;">' +
+                    '<div style="font-size:14px;font-weight:bold;color:#e5e7eb;margin-bottom:4px;">' + escapeHtml(c.displayName) + '</div>' +
+                    '<div style="font-size:10px;color:#6b7280;margin-bottom:8px;">Source: ' + escapeHtml(c.source || 'unknown') + ' | Type: ' + escapeHtml(c.type) + '</div>' +
+                    '<div style="margin-bottom:8px;"><div style="font-size:10px;color:#4b5563;margin-bottom:2px;">PLATFORMS</div>' + platformBadges + '</div>' +
+                    (emails ? '<div style="margin-bottom:6px;"><div style="font-size:10px;color:#4b5563;margin-bottom:2px;">EMAIL</div>' + emails + '</div>' : '') +
+                    (phones ? '<div style="margin-bottom:6px;"><div style="font-size:10px;color:#4b5563;margin-bottom:2px;">PHONE</div>' + phones + '</div>' : '') +
+                    (orgs ? '<div style="margin-bottom:6px;"><div style="font-size:10px;color:#4b5563;margin-bottom:2px;">ORGANIZATIONS</div>' + orgs + '</div>' : '') +
+                    (c.notes ? '<div style="margin-bottom:6px;"><div style="font-size:10px;color:#4b5563;margin-bottom:2px;">NOTES</div><div style="font-size:11px;color:#9ca3af;">' + escapeHtml(c.notes) + '</div></div>' : '') +
+                    '</div>';
+
+                // Load interactions
+                try {
+                    const iRes = await fetch('/api/contacts/' + id + '/interactions');
+                    const iData = await iRes.json();
+                    if (iData.interactions && iData.interactions.length) {
+                        const iHtml = iData.interactions.map(i =>
+                            '<div style="padding:8px 12px;border-bottom:1px solid #1f2937;">' +
+                            '<div style="font-size:11px;color:#d1d5db;">' + escapeHtml(i.summary || i.type) + '</div>' +
+                            '<div style="font-size:10px;color:#6b7280;">' + escapeHtml(i.date || '') + ' | ' + escapeHtml(i.type) + '</div>' +
+                            (i.details ? '<div style="font-size:10px;color:#4b5563;margin-top:2px;">' + escapeHtml(i.details.substring(0, 200)) + '</div>' : '') +
+                            '</div>'
+                        ).join('');
+                        detailEl.innerHTML += '<div style="padding:8px 12px;border-top:1px solid #374151;"><div style="font-size:10px;color:#4b5563;margin-bottom:4px;">INTERACTIONS (' + iData.interactions.length + ')</div></div>' + iHtml;
+                    }
+                } catch (e) {}
+
+            } catch (e) {
+                detailEl.innerHTML = '<div style="color:#ef4444;padding:16px;font-size:12px;">Error: ' + e.message + '</div>';
+            }
+        }
+
+        function closeContact() {
+            document.getElementById('contactList').classList.remove('hidden');
+            document.getElementById('contactDetail').classList.add('hidden');
+            document.getElementById('contactBackBtn').classList.add('hidden');
+        }
+
+        async function loadSyncStatus() {
+            const bar = document.getElementById('syncStatusBar');
+            try {
+                const res = await fetch('/api/sync/status');
+                const s = await res.json();
+                if (s.error) { document.getElementById('syncStatusText').textContent = 'Sync: unavailable'; return; }
+                const last = s.lastSync ? new Date(s.lastSync).toLocaleString('en-US', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : 'never';
+                document.getElementById('syncStatusText').innerHTML =
+                    '<span style="color:#6b7280;">CRM:' + s.crm.contacts + '</span> ' +
+                    '<span style="color:#6b7280;">| Odoo:' + s.mappings.odoo + '</span> ' +
+                    '<span style="color:#6b7280;">| OP:' + s.mappings.openproject + '</span> ' +
+                    '<span style="color:#6b7280;">| NC:' + s.mappings.nextcloud + '</span> ' +
+                    '<span style="color:#6b7280;">| PL:' + s.mappings.paperless + '</span> ' +
+                    '<span style="color:#4b5563;">| Last:' + last + '</span>';
+            } catch (e) {
+                document.getElementById('syncStatusText').textContent = 'Sync: connection error';
+            }
+        }
+
+        // Start
         gameLoop();
     </script>
 </body>

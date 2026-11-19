@@ -2,6 +2,9 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const dotenv = require('dotenv');
+const email = require('./email');
+const contacts = require('./contacts');
+const vault = require('./vault');
 
 const envPath = path.join(__dirname, '.env');
 if (fs.existsSync(envPath)) {
@@ -22,6 +25,11 @@ fs.mkdirSync(DATA_DIR, { recursive: true });
 
 const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || 'pixeladmin';
 
+// LiteLLM API configuration (OpenAI-compatible)
+const LITELLM_API_URL = process.env.LITELLM_API_URL || 'https://litellm.blacktech.dev';
+const LITELLM_API_KEY = process.env.LITELLM_API_KEY || '';
+const LITELLM_MODEL = process.env.LITELLM_MODEL || 'glm-5.3-flash';
+
 const dataPath = (filename) => path.join(DATA_DIR, filename);
 const CONFIG_PATH = dataPath('pixel-config.json');
 const AGENTS_PATH = dataPath('agents.json');
@@ -31,7 +39,7 @@ const COLLISION_PATH = dataPath('pixel_collision.json');
 const ROOMS_PATH = dataPath('pixel_rooms.json');
 const agentMessagePath = (id) => dataPath(`agent_${id}_message.txt`);
 const ARRIVED_OFFICE_PATH = dataPath('pep_arrived_office');
-const ARRIVED_RECEPTION_PATH = dataPath('pep_arrived_reception');
+const ARRIVED_CONCIERGE_PATH = dataPath('pep_arrived_concierge');
 
 const readJSONFile = (filePath) => {
   try {
@@ -97,34 +105,40 @@ const PORT = parseInt(process.env.PORT, 10) || 19000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
-// Configuración inicial: todos los agentes disponibles, activados según checks
+// Initial config: all agents available, activated based on checks
 let config = {
   agents: [
-    { id: 0, name: "Dustin", role: "Agente Principal", color: 0, x: 320, y: 400, state: "idle", active: true },
-    { id: 1, name: "Pep", role: "Gestor de Correo", color: 1, x: 200, y: 300, state: "idle", active: true },
-    { id: 2, name: "Agente 3", role: "Sin rol", color: 2, x: 400, y: 500, state: "idle", active: false },
-    { id: 3, name: "Agente 4", role: "Sin rol", color: 3, x: 500, y: 400, state: "idle", active: false },
-    { id: 4, name: "Agente 5", role: "Sin rol", color: 4, x: 150, y: 600, state: "idle", active: false },
-    { id: 5, name: "Agente 6", role: "Sin rol", color: 5, x: 450, y: 200, state: "idle", active: false }
+    { id: 0, name: "Curator", role: "Archivist", room: "Archive", color: 0, x: 160, y: 576, state: "idle", active: true },
+    { id: 2, name: "Charon", role: "Concierge", room: "Concierge", color: 2, x: 320, y: 400, state: "idle", active: true },
+    { id: 3, name: "Wardog", role: "Security Chief", room: "War Room", color: 3, x: 480, y: 192, state: "idle", active: true },
+    { id: 4, name: "Fixer", role: "Maintenance", room: "Executive Suite", color: 4, x: 320, y: 96, state: "idle", active: true },
+    { id: 5, name: "Tailor", role: "Attendant", room: "Lounge", color: 5, x: 320, y: 672, state: "idle", active: true },
+    { id: 6, name: "Ghostface", role: "Owner", room: "Executive Suite", color: 6, x: 400, y: 96, state: "idle", active: true }
   ],
   rooms: [
-    { name: "Recepción", x: 320, y: 700 },
-    { name: "Sala Principal", x: 320, y: 400 },
-    { name: "Sala Reuniones", x: 320, y: 100 },
-    { name: "Despacho", x: 550, y: 200 },
-    { name: "Cafetería", x: 100, y: 600 }
+    { name: "Concierge", x: 320, y: 400 },
+    { name: "Executive Suite", x: 320, y: 100 },
+    { name: "War Room", x: 500, y: 200 },
+    { name: "Archive", x: 100, y: 600 },
+    { name: "Lounge", x: 320, y: 700 }
   ]
 };
 
 const defaultAgents = JSON.parse(JSON.stringify(config.agents));
 const defaultRooms = JSON.parse(JSON.stringify(config.rooms));
 
-// Cargar configuración guardada
+// Load saved configuration
 try {
   const storedAgents = loadAgentsFromDisk();
   if (storedAgents) {
-    config.agents = storedAgents;
-    console.log('Agentes cargados desde disco');
+    // Migration: drop placeholder "Off Duty" agents; ensure Ghostface (Owner) exists
+    let migrated = storedAgents.filter(a => a.name !== 'Off Duty');
+    if (!migrated.some(a => a.name === 'Ghostface')) {
+      migrated.push(JSON.parse(JSON.stringify(defaultAgents.find(a => a.name === 'Ghostface'))));
+    }
+    config.agents = migrated;
+    persistAgents(config.agents);
+    console.log('Agents loaded from disk (migrated)');
   } else if (fs.existsSync(CONFIG_PATH)) {
     const savedConfig = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
     if (Array.isArray(savedConfig.agents)) {
@@ -134,12 +148,12 @@ try {
       config.rooms = savedConfig.rooms;
     }
     persistAgents(config.agents);
-    console.log('Configuración cargada (legacy)');
+    console.log('Configuration loaded (legacy)');
   } else {
-    console.log('Usando configuración inicial');
+    console.log('Using initial configuration');
   }
 } catch (e) {
-  console.log('Usando configuración inicial');
+  console.log('Using initial configuration');
 }
 
 const initialMapData = loadMapData() || {};
@@ -166,6 +180,90 @@ app.get('/api/config', (req, res) => {
   });
 });
 
+// LiteLLM AI proxy endpoint — OpenAI-compatible, no client API keys needed
+app.post('/api/ai/chat', async (req, res) => {
+  try {
+    const { prompt, systemPrompt } = req.body || {};
+    if (!prompt) {
+      return res.status(400).json({ error: 'Missing prompt' });
+    }
+
+    // If the prompt mentions status/briefing, inject real data as context
+    const lowerPrompt = (prompt || '').toLowerCase();
+    const isBriefing = lowerPrompt.includes('status') || lowerPrompt.includes('briefing') || lowerPrompt.includes('overview') || lowerPrompt.includes('report');
+    let briefingContext = '';
+    if (isBriefing) {
+      try {
+        const accounts = email.getAccountsList();
+        const emailLines = accounts.map(a => `  - ${a.name} (${a.email}): ${a.configured ? 'connected' : 'not configured'}`).join('\n');
+        const agentLines = (config.agents || []).map(a => `  - ${a.name}: ${a.role} in ${a.room || 'off duty'}`).join('\n');
+        const configured = accounts.filter(a => a.configured).length;
+        briefingContext = `\n\nCURRENT SYSTEM DATA:\nEmail: ${configured}/${accounts.length} accounts connected\n${emailLines}\n\nAgents on duty:\n${agentLines}\n\nVault: connected to bw.theblacktech.com\nAI: running on ${LITELLM_MODEL} via LiteLLM`;
+      } catch(e) { /* ignore briefing context errors */ }
+    }
+
+    // Use client-provided system prompt if present; otherwise use a general office context
+    const defaultContext = `You are the AI Director of Nocturnal Inc Pixel Office. Keep responses brief.`;
+    const fullSystemPrompt = systemPrompt
+      ? `${systemPrompt}${briefingContext}`
+      : `${defaultContext}${briefingContext}`;
+
+    const litellmResponse = await fetch(`${LITELLM_API_URL}/v1/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${LITELLM_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: LITELLM_MODEL,
+        messages: [
+          { role: 'system', content: fullSystemPrompt },
+          { role: 'user', content: prompt }
+        ],
+        stream: false,
+        max_tokens: 2048
+      })
+    });
+
+    if (!litellmResponse.ok) {
+      const errText = await litellmResponse.text();
+      console.error('LiteLLM API error:', litellmResponse.status, errText);
+      return res.status(502).json({ error: `LiteLLM API error: ${litellmResponse.status}` });
+    }
+
+    const data = await litellmResponse.json();
+    const content = data.choices?.[0]?.message?.content || '';
+    res.json({ response: content, model: data.model || LITELLM_MODEL });
+  } catch (err) {
+    console.error('AI chat proxy error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// LiteLLM model info endpoint
+app.get('/api/ai/status', async (req, res) => {
+  try {
+    const response = await fetch(`${LITELLM_API_URL}/v1/models`, {
+      headers: { 'Authorization': `Bearer ${LITELLM_API_KEY}` }
+    });
+    if (!response.ok) throw new Error(`LiteLLM API returned ${response.status}`);
+    const data = await response.json();
+    res.json({
+      available: true,
+      url: LITELLM_API_URL,
+      model: LITELLM_MODEL,
+      models: (data.data || []).map(m => m.id)
+    });
+  } catch (err) {
+    res.json({
+      available: false,
+      url: LITELLM_API_URL,
+      model: LITELLM_MODEL,
+      error: err.message
+    });
+  }
+});
+
 console.log('Dashboard auth route ready');
 app.post('/api/auth/login', (req, res) => {
   const { password } = req.body || {};
@@ -189,7 +287,7 @@ app.post('/api/config', (req, res) => {
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
   persistAgents(config.agents);
   persistMapData({ rooms: config.rooms });
-  console.log('Configuración guardada');
+  console.log('Configuration saved');
   res.json({ success: true, config });
 });
 
@@ -201,14 +299,14 @@ app.post('/api/agent/:id/move', (req, res) => {
     if (x !== undefined) agent.x = x;
     if (y !== undefined) agent.y = y;
     if (state) agent.state = state;
-    console.log(`[${agent.name}] Mover a (${x}, ${y})`);
+    console.log(`[${agent.name}] Move to (${x}, ${y})`);
     res.json({ success: true, agent });
   } else {
-    res.status(404).json({ error: 'Agente no encontrado' });
+    res.status(404).json({ error: 'Agent not found' });
   }
 });
 
-// API para obtener log de acciones
+// API to get action log
 app.get('/api/log', (req, res) => {
   try {
     const logData = fs.readFileSync(LOG_PATH, 'utf8')
@@ -222,7 +320,7 @@ app.get('/api/log', (req, res) => {
   }
 });
 
-// API para limpiar log
+// API to clear log
 app.post('/api/log/clear', (req, res) => {
   try {
     fs.writeFileSync(LOG_PATH, '');
@@ -232,7 +330,267 @@ app.post('/api/log/clear', (req, res) => {
   }
 });
 
-// API para obtener comandos de agentes (movimientos)
+// Status briefing — aggregates real data, no AI dependency
+app.get('/api/briefing', async (req, res) => {
+  const briefing = {
+    timestamp: new Date().toISOString(),
+    organization: 'Nocturnal Inc',
+    email: { accounts: [], totalConfigured: 0, totalAccounts: 0, totalUnread: 0 },
+    vault: { configured: false },
+    contacts: { total: 0, organizations: 0 },
+    ai: { available: false, model: LITELLM_MODEL },
+    agents: []
+  };
+
+  // Email accounts + unread counts
+  try {
+    const accounts = email.getAccountsList();
+    briefing.email.totalAccounts = accounts.length;
+    for (const acct of accounts) {
+      briefing.email.accounts.push({
+        id: acct.id, name: acct.name, email: acct.email,
+        icon: acct.icon, category: acct.category,
+        configured: acct.configured, unread: null
+      });
+      if (acct.configured) briefing.email.totalConfigured++;
+    }
+  } catch (e) {
+    briefing.email.error = e.message;
+  }
+
+  // Vault status
+  try {
+    briefing.vault = await vault.getStatus();
+  } catch (e) {
+    briefing.vault = { configured: false, error: e.message };
+  }
+
+  // Contact counts
+  try {
+    const syncStatus = contacts.getSyncStatus();
+    briefing.contacts = {
+      total: syncStatus.totalContacts || 0,
+      organizations: syncStatus.totalOrganizations || 0,
+      lastSync: syncStatus.lastSync || null
+    };
+  } catch (e) {
+    briefing.contacts = { error: e.message };
+  }
+
+  // AI/LiteLLM status
+  try {
+    const aiRes = await fetch(`${LITELLM_API_URL}/v1/models`, {
+      headers: { 'Authorization': `Bearer ${LITELLM_API_KEY}` },
+      signal: AbortSignal.timeout(3000)
+    });
+    if (aiRes.ok) {
+      const aiData = await aiRes.json();
+      briefing.ai = {
+        available: true,
+        model: LITELLM_MODEL,
+        models: (aiData.data || []).map(m => m.id)
+      };
+    }
+  } catch (e) {
+    briefing.ai = { available: false, model: LITELLM_MODEL, error: e.message };
+  }
+
+  // Agent roster
+  briefing.agents = (config.agents || []).map(a => ({
+    id: a.id, name: a.name, role: a.role, room: a.room, state: a.state
+  }));
+
+  res.json(briefing);
+});
+
+// AI-generated Nocturnal briefing — Charon delivers a natural language status report
+app.get('/api/briefing/ai', async (req, res) => {
+  try {
+    // Gather briefing data (reuse the same logic)
+    const briefing = {
+      timestamp: new Date().toISOString(),
+      organization: 'Nocturnal Inc',
+      email: { accounts: [], totalConfigured: 0, totalAccounts: 0, totalUnread: 0 },
+      vault: { configured: false },
+      contacts: { total: 0, organizations: 0 },
+      ai: { available: false, model: LITELLM_MODEL },
+      agents: []
+    };
+
+    try {
+      const accounts = email.getAccountsList();
+      briefing.email.totalAccounts = accounts.length;
+      for (const acct of accounts) {
+        briefing.email.accounts.push({
+          id: acct.id, name: acct.name, email: acct.email,
+          icon: acct.icon, category: acct.category,
+          configured: acct.configured, unread: null
+        });
+        if (acct.configured) briefing.email.totalConfigured++;
+      }
+    } catch (e) { briefing.email.error = e.message; }
+
+    try {
+      briefing.vault = await vault.getStatus();
+    } catch (e) { briefing.vault = { configured: false, error: e.message }; }
+
+    try {
+      const syncStatus = contacts.getSyncStatus();
+      briefing.contacts = {
+        total: syncStatus.totalContacts || 0,
+        organizations: syncStatus.totalOrganizations || 0,
+        lastSync: syncStatus.lastSync || null
+      };
+    } catch (e) { briefing.contacts = { error: e.message }; }
+
+    try {
+      const aiRes = await fetch(`${LITELLM_API_URL}/v1/models`, {
+        headers: { 'Authorization': `Bearer ${LITELLM_API_KEY}` },
+        signal: AbortSignal.timeout(3000)
+      });
+      if (aiRes.ok) {
+        const aiData = await aiRes.json();
+        briefing.ai = { available: true, model: LITELLM_MODEL, models: (aiData.data || []).map(m => m.id) };
+      }
+    } catch (e) { briefing.ai = { available: false, model: LITELLM_MODEL, error: e.message }; }
+
+    briefing.agents = (config.agents || []).map(a => ({
+      id: a.id, name: a.name, role: a.role, room: a.room, state: a.state
+    }));
+
+    // Build the prompt for Charon's briefing
+    const agentRoster = briefing.agents.map(a => `${a.name} (${a.role}) — ${a.state} in ${a.room}`).join('; ');
+    const emailSummary = briefing.email.accounts.map(a => `${a.name} (${a.email}): ${a.configured ? 'configured' : 'not configured'}`).join('; ');
+    const time = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+
+    const systemPrompt = `You are Charon, the control-plane agent and concierge of Nocturnal Inc's virtual office. You are delivering a comprehensive morning briefing to Jb, the operator. Be professional, personable, and thorough — like a chief of staff briefing the CEO of a small conglomerate. Cover:
+
+1. Time and date with operating-hours context (Nocturnal is a night-shift operation)
+2. Agent roster status (who's on duty, their roles, where they are, any anomalies). Ghostface is the Owner — Charon reports to Ghostface. Ghostface handles owner email (jb@theblacktech.com).
+3. Business entity overview — Nocturnal Innovations (parent), with sub-entities: Bethea Brothers (real estate), Tercum LLC (consulting), JCB Equity (investments/dividends)
+4. Products & Services portfolio:
+   - NocturnalPost: Newsletter/publication and email filtering/scrubbing service for clients (rua@nocturnalpost.com)
+   - NightChute: Internal email notification service managing notifications across all domains hosted by nocturnalinc.com
+5. Hosted domains status (mail2.nocturnalinc.com / Mailcow): nocturnalinc.com, betheabrothers.com, tercumllc.com, nocturnalpost.com, theblacktech.com, blacktech.dev
+6. Email accounts status (11 accounts: 2 owner + 9 operational across hosted domains). Ghostface handles owner inboxes: jb@theblacktech.com (11,600+ messages) and jon@j-johnson.com (JCB Equity). Charon triages and routes from there.
+7. Infrastructure highlights: gamma k3s cluster, delta (media/arr services), LiteLLm AI inference, OpenProject (op.nocturnalinc.com), Odoo ERP, Paperless document mgmt, Vaultwarden, Grafana monitoring, rustfs/S3 storage, ChromaDB vectors
+8. Vault status (Vaultwarden)
+9. Contacts database status (CRM)
+10. AI system status (LiteLLM models)
+11. OpenProject status — Nocturnal Innovations (ID 5) with 4 sub-projects: Nocturnal Corporate (ID 9), Nocturnal Products (ID 10), assylummadetrack (ID 6), mchenryteam-realestate (ID 7)
+12. Any items needing attention, risks, or recommendations
+
+Aim for 400-600 words. Use natural prose with clear section transitions, not bullet points. Sign off as Charon.`;
+
+    const userPrompt = `Current time: ${time}
+Organization: Nocturnal Innovations (parent company)
+Operating hours: Night-shift (Nocturnal operates primarily during overnight hours)
+
+=== AGENT ROSTER ===
+Agents on duty:
+${agentRoster}
+
+=== BUSINESS ENTITIES ===
+Nocturnal Innovations — Parent company, operations management, customer service
+  Sub-entities:
+  - Bethea Brothers — Real estate operations
+  - Tercum LLC — Consulting services
+  - JCB Equity — Investment portfolio (dividend income for UBI project, ~$76/mo from 12 positions)
+
+=== PRODUCTS & SERVICES ===
+NocturnalPost — Newsletter/publication platform and email filtering/scrubbing service for clients. Email: rua@nocturnalpost.com. Status: active.
+NightChute — Internal email notification service managing email notifications for all domains hosted by nocturnalinc.com. Status: operational.
+
+=== HOSTED DOMAINS (mail2.nocturnalinc.com / Mailcow) ===
+- nocturnalinc.com — Primary business domain
+- betheabrothers.com — Real estate domain
+- tercumllc.com — Consulting domain
+- nocturnalpost.com — Publication/filtering service domain
+- theblacktech.com — Internal infrastructure (Vaultwarden, GitLab, Nextcloud, Immich)
+- blacktech.dev — Internal services (Mattermost, Paperless, Odoo, rustfs, Grafana, HA)
+
+=== EMAIL ACCOUNTS ===
+Email accounts (${briefing.email.totalConfigured}/${briefing.email.totalAccounts} configured):
+${emailSummary}
+${briefing.email.error ? 'Email error: ' + briefing.email.error : ''}
+
+=== VAULT ===
+Vault: ${briefing.vault.configured ? 'Configured' : 'Not configured'}${briefing.vault.orgConfigured ? ' (org connected)' : ''}${briefing.vault.error ? ' — error: ' + briefing.vault.error : ''}
+(Vaultwarden: 782 ciphers, 60 folders)
+
+=== CONTACTS (CRM) ===
+Contacts: ${briefing.contacts.total} contacts, ${briefing.contacts.organizations} organizations${briefing.contacts.error ? ' — error: ' + briefing.contacts.error : ''}
+
+=== AI SYSTEMS ===
+AI: ${briefing.ai.available ? 'Online (' + briefing.ai.model + ', ' + (briefing.ai.models || []).length + ' models available)' : 'Offline'}${briefing.ai.error ? ' — error: ' + briefing.ai.error : ''}
+(LiteLLM proxy at litellm.blacktech.dev, models include: glm-5.2, glm-5.3, glm-5.3-flash, deepseek-v4-pro, kimi-k2.7-code, nemotron-3-ultra, llama3.2, llama3.2-gamma, nomic-embed-text, deepseek-v4.1-flash)
+
+=== INFRASTRUCTURE ===
+- gamma (192.168.15.230): k3s cluster, LiteLLM, rustfs/S3, ChromaDB, Rundeck, Prowlarr
+- delta (192.168.15.207): Radarr, Sonarr, Lidarr, qBittorrent
+- alpha (192.168.15.75): auxiliary services
+- OpenProject (op.nocturnalinc.com): Project management, 3 projects + 4 sub-projects
+- Odoo (odoo.blacktech.dev): ERP, invoicing, partner management
+- Paperless (paperless.blacktech.dev): Document management
+- Vaultwarden (bw.theblacktech.com): Password/secrets management
+- Grafana: Monitoring and dashboards
+- Graylog: Centralized logging
+- Mattermost (mm.blacktech.dev): Team communications
+- GitLab: Code repositories
+- Nextcloud: File collaboration
+- Immich: Photo management
+
+=== OPENPROJECT STRUCTURE ===
+Nocturnal Innovations (ID 5, parent) with 4 sub-projects:
+  - Nocturnal Corporate (ID 9, nocturnal-corp) — corp tasks, admin, compliance, business ops
+  - Nocturnal Products (ID 10, nocturnal-products) — product dev: NocturnalPost, NightChute
+  - assylummadetrack (ID 6) — legacy project
+  - mchenryteam-realestate (ID 7) — real estate tracking
+Also: Bethea Brothers (separate project), JCB Equity (separate project)
+
+Deliver the briefing.`;
+
+    const aiRes = await fetch(`${LITELLM_API_URL}/v1/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${LITELLM_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: LITELLM_MODEL,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 4000
+      }),
+      signal: AbortSignal.timeout(30000)
+    });
+
+    if (!aiRes.ok) {
+      const errText = await aiRes.text();
+      return res.status(502).json({ error: 'LiteLLM error', status: aiRes.status, detail: errText });
+    }
+
+    const aiData = await aiRes.json();
+    const choice = aiData.choices?.[0]?.message;
+    // Reasoning models (e.g. glm-5.3-flash) may put output in reasoning_content
+    // when max_tokens is too low. Prefer content, fall back to reasoning_content.
+    const briefingText = choice?.content || choice?.reasoning_content || 'No response from AI.';
+
+    res.json({
+      briefing: briefingText,
+      model: LITELLM_MODEL,
+      timestamp: briefing.timestamp,
+      rawData: briefing
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API to get agent commands (movements)
 const agentCommands = {};
 const commandTimestamps = {};
 
@@ -240,16 +598,16 @@ app.get('/api/agent/:id/command', (req, res) => {
   const id = parseInt(req.params.id);
   const cmd = agentCommands[id];
   
-  // Si hay comando y tiene menos de 30 segundos, devolverlo y consumirlo inmediatamente
+  // If command exists and is less than 30 seconds old, return and consume it immediately
   if (cmd && commandTimestamps[id]) {
     const age = Date.now() - commandTimestamps[id];
-    if (age < 30000) { // Comando válido por 30 segundos
-      // Consumir inmediatamente para evitar que otros navegadores lo lean
+    if (age < 30000) { // Command valid for 30 seconds
+      // Consume immediately to prevent other browsers from reading it
       agentCommands[id] = null;
       commandTimestamps[id] = null;
       return res.json(cmd);
     } else {
-      // Comando expirado, limpiar
+      // Command expired, clean up
       agentCommands[id] = null;
       commandTimestamps[id] = null;
     }
@@ -257,19 +615,19 @@ app.get('/api/agent/:id/command', (req, res) => {
   res.json(null);
 });
 
-// Endpoint para confirmar que el agente llegó físicamente al destino
+// Endpoint to confirm agent physically arrived at destination
 app.post('/api/agent/:id/arrived', (req, res) => {
   const id = parseInt(req.params.id);
   const { location } = req.body;
   
-  // Crear archivo de señalización para el controller
+  // Create signaling file for the controller
   if (location === 'office') {
     fs.writeFileSync(ARRIVED_OFFICE_PATH, '1');
-  } else if (location === 'reception') {
-    fs.writeFileSync(ARRIVED_RECEPTION_PATH, '1');
+  } else if (location === 'concierge') {
+    fs.writeFileSync(ARRIVED_CONCIERGE_PATH, '1');
   }
   
-  console.log(`[Llegada] Agente ${id} llegó a: ${location}`);
+  console.log(`[Arrival] Agent ${id} arrived at: ${location}`);
   res.json({ success: true });
 });
 app.post('/api/agent/:id/command/ack', (req, res) => {
@@ -283,7 +641,7 @@ app.post('/api/agent/:id/command', (req, res) => {
   const id = parseInt(req.params.id);
   agentCommands[id] = req.body;
   commandTimestamps[id] = Date.now();
-  console.log(`[Comando] Agente ${id}:`, req.body);
+  console.log(`[Command] Agent ${id}:`, req.body);
   res.json({ success: true });
 });
 app.get('/api/messages', (req, res) => {
@@ -298,7 +656,7 @@ app.get('/api/messages', (req, res) => {
   res.json(messages);
 });
 
-// API para guardar mapa de colisiones
+// API to save collision map
 app.post('/api/collision', (req, res) => {
   try {
     persistMapData({ collision: req.body });
@@ -309,7 +667,7 @@ app.post('/api/collision', (req, res) => {
   }
 });
 
-// API para guardar salas
+// API to save rooms
 app.post('/api/rooms', (req, res) => {
   try {
     const updated = persistMapData({ rooms: req.body });
@@ -326,15 +684,15 @@ app.get('/api/collision', (req, res) => {
   try {
     const mapData = loadMapData();
     if (!mapData || !mapData.collision) {
-      throw new Error('Mapa no disponible');
+      throw new Error('Map not available');
     }
     res.json(mapData.collision);
   } catch (e) {
-    res.status(500).json({ error: e.message || 'Mapa no disponible' });
+    res.status(500).json({ error: e.message || 'Map not available' });
   }
 });
 
-// API para obtener salas
+// API to get rooms
 app.get('/api/rooms', (req, res) => {
   try {
     const mapData = loadMapData();
@@ -347,11 +705,196 @@ app.get('/api/rooms', (req, res) => {
   res.json(config.rooms.map(r => ({ name: r.name, x: r.x, y: r.y, tiles: [] })));
 });
 
+// === Contacts API (CRM) ===
+
+// Search contacts
+app.get('/api/contacts/search', (req, res) => {
+  try {
+    const term = req.query.q || '';
+    const limit = parseInt(req.query.limit) || 20;
+    const results = contacts.searchContacts(term, limit);
+    res.json({ results, count: results.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get contact by ID
+app.get('/api/contacts/:id', (req, res) => {
+  try {
+    const contact = contacts.getContact(req.params.id);
+    if (!contact) return res.status(404).json({ error: 'Contact not found' });
+    res.json(contact);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get contact interactions
+app.get('/api/contacts/:id/interactions', (req, res) => {
+  try {
+    const interactions = contacts.getInteractions(req.params.id);
+    res.json({ interactions, count: interactions.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Search organizations
+app.get('/api/orgs/search', (req, res) => {
+  try {
+    const term = req.query.q || '';
+    const limit = parseInt(req.query.limit) || 20;
+    const results = contacts.searchOrganizations(term, limit);
+    res.json({ results, count: results.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Sync status across all platforms
+app.get('/api/sync/status', (req, res) => {
+  try {
+    const status = contacts.getSyncStatus();
+    res.json(status);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// === Email API ===
+
+// Get accounts list (metadata only, no passwords)
+app.get('/api/email/accounts', (req, res) => {
+  res.json({
+    accounts: email.getAccountsList(),
+    categories: email.CATEGORIES
+  });
+});
+
+// Get unread counts for all accounts (batch)
+app.get('/api/email/unread/all', async (req, res) => {
+  try {
+    const results = await email.getAllUnreadCounts();
+    res.json(results);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get unread count for a specific account (fast polling)
+app.get('/api/email/unread', async (req, res) => {
+  try {
+    const accountId = req.query.account || null;
+    const result = await email.getUnreadCount('INBOX', accountId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message, unread: 0 });
+  }
+});
+
+// List inbox emails for a specific account
+app.get('/api/email/inbox', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 20;
+    const folder = req.query.folder || 'INBOX';
+    const accountId = req.query.account || null;
+    const result = await email.listInbox(limit, folder, accountId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get full email by ID
+app.get('/api/email/:id', async (req, res) => {
+  try {
+    const folder = req.query.folder || 'INBOX';
+    const accountId = req.query.account || null;
+    const result = await email.getEmail(req.params.id, folder, accountId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Send email
+app.post('/api/email/send', async (req, res) => {
+  try {
+    const { to, subject, body, account } = req.body || {};
+    if (!to || !subject) {
+      return res.status(400).json({ error: 'Missing to or subject' });
+    }
+    const result = await email.sendEmail(to, subject, body || '', account || null);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// === Vaultwarden API ===
+
+// Get vault status
+app.get('/api/vault/status', async (req, res) => {
+  try {
+    const status = await vault.getStatus();
+    res.json(status);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Search vault items
+app.get('/api/vault/search', async (req, res) => {
+  try {
+    const query = req.query.q || '';
+    const type = req.query.type ? parseInt(req.query.type) : null;
+    if (!query) {
+      return res.json({ items: [], count: 0 });
+    }
+    const result = await vault.searchItems(query, type);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get full item details
+app.get('/api/vault/item/:id', async (req, res) => {
+  try {
+    const result = await vault.getItem(req.params.id);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// List folders
+app.get('/api/vault/folders', async (req, res) => {
+  try {
+    const result = await vault.listFolders();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// List collections
+app.get('/api/vault/collections', async (req, res) => {
+  try {
+    const result = await vault.listCollections();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Pixel Office v3 en http://0.0.0.0:${PORT}`);
-  console.log('Agentes activos:', config.agents.filter(a => a.active).map(a => a.name).join(', '));
+  console.log(`Pixel Office v3 on http://0.0.0.0:${PORT}`);
+  console.log('Active agents:', config.agents.filter(a => a.active).map(a => a.name).join(', '));
+  console.log(`LiteLLM API: ${LITELLM_API_URL} (model: ${LITELLM_MODEL})`);
 });
