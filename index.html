@@ -110,7 +110,7 @@
                 <div class="space-y-4" id="chatMessages">
                     <div class="flex flex-col bg-gray-700/50 p-3 rounded-lg border border-gray-600/50 w-4/5">
                         <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider mb-1">System Guide</span>
-                        <span class="text-sm text-gray-200">Example: "Tell character1 to go to the meeting room" or "character2, I want you to sit down and work"</span>
+                        <span class="text-sm text-gray-200">Example: "Tell Charon to go to the Archives" or "Wardog, I want you to sit down and work"</span>
                     </div>
                 </div>
             </div>
@@ -155,24 +155,7 @@
                     <button onclick="refreshLog()" style="flex: 1; background: #2563eb; color: white; padding: 8px; border-radius: 4px; font-size: 12px; border: none; cursor: pointer;">🔄 Refresh</button>
                     <button onclick="clearLog()" style="flex: 1; background: #dc2626; color: white; padding: 8px; border-radius: 4px; font-size: 12px; border: none; cursor: pointer;">🗑️ Clear</button>
                 </div>
-                <div style="font-size: 10px; color: #6b7280; display: flex; gap: 12px;">
-                    <button onclick="toggleLogFilter(0)" id="filterDustin" style="display: flex; align-items: center; gap: 4px; background: rgba(59, 130, 246, 0.1); border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: all 0.2s; opacity: 1;">
-                        <span style="display: inline-block; width: 12px; height: 12px; background: #3b82f6; border-radius: 2px;"></span>
-                        <span style="color: #60a5fa;">Dustin</span>
-                    </button>
-                    <button onclick="toggleLogFilter(1)" id="filterMarian" style="display: flex; align-items: center; gap: 4px; background: rgba(249, 115, 22, 0.1); border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: all 0.2s; opacity: 1;">
-                        <span style="display: inline-block; width: 12px; height: 12px; background: #f97316; border-radius: 2px;"></span>
-                        <span style="color: #fb923c;">Marian</span>
-                    </button>
-                    <button onclick="toggleLogFilter(2)" id="filterPep" style="display: flex; align-items: center; gap: 4px; background: rgba(34, 197, 94, 0.1); border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: all 0.2s; opacity: 1;">
-                        <span style="display: inline-block; width: 12px; height: 12px; background: #22c55e; border-radius: 2px;"></span>
-                        <span style="color: #4ade80;">Pep</span>
-                    </button>
-                    <button onclick="toggleLogFilter(3)" id="filterDoc" style="display: flex; align-items: center; gap: 4px; background: rgba(129, 140, 248, 0.1); border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: all 0.2s; opacity: 1;">
-                        <span style="display: inline-block; width: 12px; height: 12px; background: #818cf8; border-radius: 2px;"></span>
-                        <span style="color: #a5b4fc;">Doc</span>
-                    </button>
-                </div>
+                <div id="logFilterBar" style="font-size: 10px; color: #6b7280; display: flex; gap: 8px; flex-wrap: wrap;"></div>
             </div>
         </div>
 
@@ -1112,12 +1095,52 @@
                 // Update buttons after loading
                 setTimeout(updateCharacterButtons, 100);
                 
+                // Initialize dynamic log system with loaded agents
+                initLogSystem(config.agents);
+                
             } catch(e) {
                 console.error("Error loading config from server:", e);
                 initDefault();
             }
             
             startTime = Date.now();
+        }
+
+        // AGENT_COLORS map — populated by initLogSystem from live /api/config
+        const AGENT_COLORS = {};
+
+        function initLogSystem(agents) {
+            const colorMap = {
+                0: { color: '#3b82f6', text: '#60a5fa' },   // blue
+                2: { color: '#22c55e', text: '#4ade80' },   // green
+                3: { color: '#818cf8', text: '#a5b4fc' },   // indigo
+                4: { color: '#f97316', text: '#fb923c' },   // orange
+                5: { color: '#ec4899', text: '#f9a8d4' },   // pink
+                6: { color: '#ef4444', text: '#fca5a5' }    // red
+            };
+
+            const filterBar = document.getElementById('logFilterBar');
+            if (!filterBar) return;
+            filterBar.innerHTML = '';
+
+            // Clear and rebuild
+            logFilters = {};
+            for (const key in filterButtons) delete filterButtons[key];
+
+            agents.forEach(agent => {
+                const c = colorMap[agent.color] || { color: '#6b7280', text: '#9ca3af' };
+                AGENT_COLORS[agent.id] = { name: agent.name, color: c.color, text: c.text };
+                logFilters[agent.id] = true;
+
+                const btn = document.createElement('button');
+                btn.style.cssText = `display: flex; align-items: center; gap: 4px; background: ${c.color}1a; border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: all 0.2s; opacity: 1;`;
+                btn.innerHTML = `<span style="display: inline-block; width: 12px; height: 12px; background: ${c.color}; border-radius: 2px;"></span><span style="color: ${c.text};">${agent.name}</span>`;
+                btn.onclick = () => toggleLogFilter(agent.id);
+                filterBar.appendChild(btn);
+                filterButtons[agent.id] = btn;
+            });
+
+            console.log('Log system initialized with', agents.length, 'agents');
         }
 
         function initDefault() {
@@ -1236,11 +1259,9 @@
 
         if (window.roomsInfo.length === 0) {
             window.roomsInfo = [
-                { id: 1, name: 'Concierge', x: 10, y: 12 },
-                { id: 2, name: 'Executive Suite', x: 10, y: 3 },
-                { id: 3, name: 'War Room', x: 15, y: 6 },
-                { id: 4, name: 'Archive', x: 3, y: 18 },
-                { id: 5, name: 'Lounge', x: 10, y: 21 }
+                { id: 1, name: 'Reception', x: 10, y: 7 },
+                { id: 2, name: 'Workstations', x: 10, y: 14 },
+                { id: 3, name: 'Archives', x: 10, y: 21 }
             ];
         }
 
@@ -1738,13 +1759,11 @@ Write NOTHING MORE than raw JSON, without code block markdown.`;
         const logEntries = document.getElementById('logEntries');
 
         // Log filters
-        let logFilters = { 0: true, 1: true, 2: true, 3: true }; // Dustin, Marian y Pep visible by default
+        let logFilters = {}; // Populated dynamically by initLogSystem()
         let allLogs = []; // Cache de todos los logs
 
         const filterButtons = {
-            0: document.getElementById('filterDustin'),
-            1: document.getElementById('filterMarian'),
-            2: document.getElementById('filterPep')
+            // Filter buttons populated dynamically by initLogSystem()
         };
 
         const filterStyles = {
@@ -1791,10 +1810,7 @@ Write NOTHING MORE than raw JSON, without code block markdown.`;
                 entry.style.cssText = 'display: flex; align-items: flex-start; gap: 8px; padding: 8px; margin-bottom: 8px; background: rgba(31, 41, 55, 0.5); border-left: 2px solid; border-radius: 4px;';
                 
                 const agentMeta = {
-                    0: { name: 'Dustin', color: '#3b82f6', text: '#60a5fa' },
-                    1: { name: 'Marian', color: '#f97316', text: '#fdba74' },
-                    2: { name: 'Pep', color: '#22c55e', text: '#4ade80' },
-                    3: { name: 'Doc', color: '#818cf8', text: '#a5b4fc' }
+                    // AGENT_COLORS populated dynamically by initLogSystem()
                 }[log.agent] || { name: `Agent ${log.agent}`, color: '#6b7280', text: '#9ca3af' };
                 
                 entry.style.borderLeftColor = agentMeta.color;

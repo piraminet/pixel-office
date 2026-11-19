@@ -108,19 +108,17 @@ app.use(express.static(path.join(__dirname)));
 // Initial config: all agents available, activated based on checks
 let config = {
   agents: [
-    { id: 0, name: "Curator", role: "Archivist", room: "Archive", color: 0, x: 160, y: 576, state: "idle", active: true },
-    { id: 2, name: "Charon", role: "Concierge", room: "Concierge", color: 2, x: 320, y: 400, state: "idle", active: true },
-    { id: 3, name: "Wardog", role: "Security Chief", room: "War Room", color: 3, x: 480, y: 192, state: "idle", active: true },
-    { id: 4, name: "Fixer", role: "Maintenance", room: "Executive Suite", color: 4, x: 320, y: 96, state: "idle", active: true },
-    { id: 5, name: "Tailor", role: "Attendant", room: "Lounge", color: 5, x: 320, y: 672, state: "idle", active: true },
-    { id: 6, name: "Ghostface", role: "Owner", room: "Executive Suite", color: 6, x: 400, y: 96, state: "idle", active: true }
+    { id: 0, name: "Curator", role: "Archivist", room: "Archives", color: 0, x: 320, y: 680, state: "idle", active: true },
+    { id: 2, name: "Charon", role: "Concierge", room: "Reception", color: 2, x: 320, y: 220, state: "idle", active: true },
+    { id: 3, name: "Wardog", role: "Security Chief", room: "Workstations", color: 3, x: 180, y: 440, state: "idle", active: true },
+    { id: 4, name: "Fixer", role: "Maintenance", room: "Workstations", color: 4, x: 320, y: 440, state: "idle", active: true },
+    { id: 5, name: "Tailor", role: "Attendant", room: "Workstations", color: 5, x: 460, y: 440, state: "idle", active: true },
+    { id: 6, name: "Ghostface", role: "Owner", room: "Reception", color: 6, x: 420, y: 180, state: "idle", active: true }
   ],
   rooms: [
-    { name: "Concierge", x: 320, y: 400 },
-    { name: "Executive Suite", x: 320, y: 100 },
-    { name: "War Room", x: 500, y: 200 },
-    { name: "Archive", x: 100, y: 600 },
-    { name: "Lounge", x: 320, y: 700 }
+    { name: "Reception", x: 320, y: 220 },
+    { name: "Workstations", x: 320, y: 440 },
+    { name: "Archives", x: 320, y: 680 }
   ]
 };
 
