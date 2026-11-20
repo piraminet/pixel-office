@@ -1,0 +1,14 @@
+{
+ "version": 1,
+ "id": "ps_0001",
+ "task_id": "task.9001",
+ "kind": "briefing",
+ "objective": "Draft morning briefing",
+ "operational_scope": "company",
+ "requested_by": "employee.charon",
+ "assigned_employee_id": "employee.marian",
+ "correlation_id": "corr-9001",
+ "created_at": "2026-11-20T12:00:00.000Z",
+ "payload": null,
+ "type": "Task"
+}

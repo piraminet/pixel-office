@@ -1,0 +1,15 @@
+{
+ "type": "TaskResult",
+ "version": 1,
+ "id": "ps_0001",
+ "task_id": "task.9001",
+ "status": "completed",
+ "outcome_summary": "Briefing drafted for review",
+ "provenance": {
+  "harness": "hermes",
+  "native_agent_id": "hermes.marian",
+  "session_id": "sess-5219"
+ },
+ "completed_at": "2026-11-20T12:00:00.000Z",
+ "error": null
+}

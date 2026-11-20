@@ -1,0 +1,9 @@
+{
+ "version": 1,
+ "id": "ps_0001",
+ "task_id": "task.9001",
+ "dispatch_id": "disp.9001",
+ "harness": "hermes",
+ "dispatched_by": "employee.charon",
+ "type": "TaskReceipt"
+}

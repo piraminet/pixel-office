@@ -1,0 +1,82 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/bageera/pixel-startup/contracts/schemas/ProviderDescriptor.schema.json",
+ "title": "Pixel Startup ProviderDescriptor contract",
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Za-z0-9_.:@-]+$",
+   "minLength": 4
+  },
+  "type": {
+   "const": "ProviderDescriptor"
+  },
+  "version": {
+   "const": 1
+  },
+  "provider_id": {
+   "type": "string",
+   "minLength": 4
+  },
+  "category": {
+   "enum": [
+    "agent_harness",
+    "agent_discovery",
+    "task_execution",
+    "memory_retrieval",
+    "object_storage",
+    "comms_internal",
+    "comms_external",
+    "credential_execution",
+    "monitoring",
+    "automation",
+    "activity_reporting",
+    "operational_persistence"
+   ]
+  },
+  "implementation": {
+   "enum": [
+    "python",
+    "javascript",
+    "external"
+   ]
+  },
+  "state": {
+   "enum": [
+    "discovered",
+    "registered",
+    "candidate",
+    "qualified",
+    "active",
+    "deprecated",
+    "disabled"
+   ]
+  },
+  "endpoint": {
+   "type": [
+    "string",
+    "null"
+   ]
+  },
+  "capabilities": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   },
+   "minItems": 1
+  }
+ },
+ "required": [
+  "id",
+  "type",
+  "version",
+  "provider_id",
+  "category",
+  "implementation",
+  "state",
+  "endpoint",
+  "capabilities"
+ ],
+ "additionalProperties": false
+}

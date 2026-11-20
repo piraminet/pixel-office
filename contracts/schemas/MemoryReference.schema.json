@@ -1,0 +1,70 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/bageera/pixel-startup/contracts/schemas/MemoryReference.schema.json",
+ "title": "Pixel Startup MemoryReference contract",
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Za-z0-9_.:@-]+$",
+   "minLength": 4
+  },
+  "type": {
+   "const": "MemoryReference"
+  },
+  "version": {
+   "const": 1
+  },
+  "memory_id": {
+   "type": "string",
+   "minLength": 4
+  },
+  "collection": {
+   "type": "string",
+   "minLength": 1
+  },
+  "operational_scope": {
+   "enum": [
+    "company",
+    "household",
+    "shared",
+    "employee"
+   ]
+  },
+  "provenance": {
+   "type": "object",
+   "properties": {
+    "source": {
+     "type": "string",
+     "minLength": 1
+    },
+    "retrieved_at": {
+     "type": "string",
+     "minLength": 20
+    }
+   },
+   "required": [
+    "source",
+    "retrieved_at"
+   ],
+   "additionalProperties": false
+  },
+  "expires_at": {
+   "type": [
+    "string",
+    "null"
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "type",
+  "version",
+  "memory_id",
+  "collection",
+  "operational_scope",
+  "provenance",
+  "expires_at"
+ ],
+ "additionalProperties": false
+}

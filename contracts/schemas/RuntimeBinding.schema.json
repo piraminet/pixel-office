@@ -1,0 +1,63 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/bageera/pixel-startup/contracts/schemas/RuntimeBinding.schema.json",
+ "title": "Pixel Startup RuntimeBinding contract",
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Za-z0-9_.:@-]+$",
+   "minLength": 4
+  },
+  "type": {
+   "const": "RuntimeBinding"
+  },
+  "version": {
+   "const": 1
+  },
+  "binding_id": {
+   "type": "string",
+   "minLength": 4
+  },
+  "employee_id": {
+   "type": "string"
+  },
+  "harness": {
+   "enum": [
+    "openclaw",
+    "hermes"
+   ]
+  },
+  "harness_instance_id": {
+   "type": "string",
+   "minLength": 1
+  },
+  "native_agent_id": {
+   "type": "string",
+   "minLength": 1
+  },
+  "profile_label": {
+   "type": "string"
+  },
+  "bound_at": {
+   "type": "string",
+   "minLength": 20
+  },
+  "active": {
+   "type": "boolean"
+  }
+ },
+ "required": [
+  "id",
+  "type",
+  "version",
+  "binding_id",
+  "employee_id",
+  "harness",
+  "harness_instance_id",
+  "native_agent_id",
+  "bound_at",
+  "active"
+ ],
+ "additionalProperties": false
+}

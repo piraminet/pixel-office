@@ -1,0 +1,64 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/bageera/pixel-startup/contracts/schemas/AgentCapability.schema.json",
+ "title": "Pixel Startup AgentCapability contract",
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Za-z0-9_.:@-]+$",
+   "minLength": 4
+  },
+  "type": {
+   "const": "AgentCapability"
+  },
+  "version": {
+   "const": 1
+  },
+  "capability_id": {
+   "type": "string",
+   "minLength": 4
+  },
+  "employee_id": {
+   "type": "string"
+  },
+  "capability": {
+   "type": "string",
+   "minLength": 1
+  },
+  "operational_scope": {
+   "enum": [
+    "company",
+    "household",
+    "shared",
+    "employee"
+   ]
+  },
+  "authorized": {
+   "type": "boolean"
+  },
+  "granted_by": {
+   "type": "string",
+   "minLength": 1
+  },
+  "expires_at": {
+   "type": [
+    "string",
+    "null"
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "type",
+  "version",
+  "capability_id",
+  "employee_id",
+  "capability",
+  "operational_scope",
+  "authorized",
+  "granted_by",
+  "expires_at"
+ ],
+ "additionalProperties": false
+}

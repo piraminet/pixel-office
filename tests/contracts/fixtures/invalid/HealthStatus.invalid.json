@@ -1,0 +1,11 @@
+{
+ "version": 1,
+ "id": "ps_0001",
+ "component": "hermes-adapter",
+ "checked_at": "2026-11-20T12:00:00.000Z",
+ "reason": "no reachable gateway instance",
+ "blockers": [
+  "hermes.gateway.unreachable"
+ ],
+ "type": "HealthStatus"
+}

@@ -1,0 +1,67 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/bageera/pixel-startup/contracts/schemas/ApprovalRequest.schema.json",
+ "title": "Pixel Startup ApprovalRequest contract",
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Za-z0-9_.:@-]+$",
+   "minLength": 4
+  },
+  "type": {
+   "const": "ApprovalRequest"
+  },
+  "version": {
+   "const": 1
+  },
+  "request_id": {
+   "type": "string",
+   "minLength": 4
+  },
+  "task_id": {
+   "type": "string"
+  },
+  "requested_by": {
+   "type": "string",
+   "minLength": 1
+  },
+  "reason": {
+   "type": "string",
+   "minLength": 1
+  },
+  "operational_scope": {
+   "enum": [
+    "company",
+    "household",
+    "shared",
+    "employee"
+   ]
+  },
+  "status": {
+   "enum": [
+    "pending",
+    "approved",
+    "denied",
+    "cancelled"
+   ]
+  },
+  "created_at": {
+   "type": "string",
+   "minLength": 20
+  }
+ },
+ "required": [
+  "id",
+  "type",
+  "version",
+  "request_id",
+  "task_id",
+  "requested_by",
+  "reason",
+  "operational_scope",
+  "status",
+  "created_at"
+ ],
+ "additionalProperties": false
+}

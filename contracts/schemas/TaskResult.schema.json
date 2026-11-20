@@ -1,0 +1,78 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/bageera/pixel-startup/contracts/schemas/TaskResult.schema.json",
+ "title": "Pixel Startup TaskResult contract",
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Za-z0-9_.:@-]+$",
+   "minLength": 4
+  },
+  "type": {
+   "const": "TaskResult"
+  },
+  "version": {
+   "const": 1
+  },
+  "task_id": {
+   "type": "string"
+  },
+  "status": {
+   "enum": [
+    "completed",
+    "failed",
+    "cancelled"
+   ]
+  },
+  "outcome_summary": {
+   "type": "string"
+  },
+  "provenance": {
+   "type": "object",
+   "properties": {
+    "harness": {
+     "enum": [
+      "openclaw",
+      "hermes"
+     ]
+    },
+    "native_agent_id": {
+     "type": "string",
+     "minLength": 1
+    },
+    "session_id": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "harness",
+    "native_agent_id",
+    "session_id"
+   ],
+   "additionalProperties": false
+  },
+  "completed_at": {
+   "type": "string",
+   "minLength": 20
+  },
+  "error": {
+   "type": [
+    "string",
+    "null"
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "type",
+  "version",
+  "task_id",
+  "status",
+  "outcome_summary",
+  "provenance",
+  "completed_at",
+  "error"
+ ],
+ "additionalProperties": false
+}

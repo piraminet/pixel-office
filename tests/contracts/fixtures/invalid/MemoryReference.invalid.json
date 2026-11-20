@@ -1,0 +1,9 @@
+{
+ "version": 1,
+ "id": "ps_0001",
+ "memory_id": "mem.2001",
+ "collection": "org_shared",
+ "operational_scope": "shared",
+ "expires_at": null,
+ "type": "MemoryReference"
+}

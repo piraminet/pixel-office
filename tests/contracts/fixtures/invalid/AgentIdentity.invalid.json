@@ -1,0 +1,27 @@
+{
+ "version": 1,
+ "id": "ps_0001",
+ "employee_id": "employee.charon",
+ "display_name": "Charon",
+ "sprite_id": "char_2",
+ "harness": "openclaw",
+ "native_harness_id": "openclaw-charon-main",
+ "harness_instance_id": "gateway.gammaclaw",
+ "session_id": "sess-8128",
+ "current_task_id": "",
+ "lifecycle": "available",
+ "asserted_id": "employee.charon",
+ "verified_binding": {
+  "binding_id": "bind.charon.001",
+  "verified": true
+ },
+ "authorization_context": {
+  "capabilities": [
+   "briefing.read",
+   "comms.internal.notify"
+  ],
+  "granted_by": "owner",
+  "granted_at": "2026-11-20T12:00:00.000Z"
+ },
+ "type": "AgentIdentity"
+}

@@ -1,0 +1,66 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/bageera/pixel-startup/contracts/schemas/AgentStatus.schema.json",
+ "title": "Pixel Startup AgentStatus contract",
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Za-z0-9_.:@-]+$",
+   "minLength": 4
+  },
+  "type": {
+   "const": "AgentStatus"
+  },
+  "version": {
+   "const": 1
+  },
+  "employee_id": {
+   "type": "string"
+  },
+  "harness": {
+   "enum": [
+    "openclaw",
+    "hermes",
+    "none"
+   ]
+  },
+  "native_agent_id": {
+   "type": "string"
+  },
+  "status": {
+   "enum": [
+    "online",
+    "offline",
+    "busy",
+    "unknown"
+   ]
+  },
+  "source": {
+   "enum": [
+    "observed",
+    "inferred"
+   ]
+  },
+  "observed_at": {
+   "type": "string",
+   "minLength": 20
+  },
+  "detail": {
+   "type": "string"
+  }
+ },
+ "required": [
+  "id",
+  "type",
+  "version",
+  "employee_id",
+  "harness",
+  "native_agent_id",
+  "status",
+  "source",
+  "observed_at",
+  "detail"
+ ],
+ "additionalProperties": false
+}

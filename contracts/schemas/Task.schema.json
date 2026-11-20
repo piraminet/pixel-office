@@ -1,0 +1,89 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/bageera/pixel-startup/contracts/schemas/Task.schema.json",
+ "title": "Pixel Startup Task contract",
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Za-z0-9_.:@-]+$",
+   "minLength": 4
+  },
+  "type": {
+   "const": "Task"
+  },
+  "version": {
+   "const": 1
+  },
+  "task_id": {
+   "type": "string",
+   "minLength": 4
+  },
+  "kind": {
+   "type": "string",
+   "minLength": 1
+  },
+  "objective": {
+   "type": "string",
+   "minLength": 1
+  },
+  "operational_scope": {
+   "enum": [
+    "company",
+    "household",
+    "shared",
+    "employee"
+   ]
+  },
+  "requested_by": {
+   "type": "string"
+  },
+  "assigned_employee_id": {
+   "type": [
+    "string",
+    "null"
+   ]
+  },
+  "status": {
+   "enum": [
+    "created",
+    "authorized",
+    "dispatched",
+    "running",
+    "waiting",
+    "completed",
+    "failed",
+    "cancelled"
+   ]
+  },
+  "correlation_id": {
+   "type": "string"
+  },
+  "created_at": {
+   "type": "string",
+   "minLength": 20
+  },
+  "payload": {
+   "type": [
+    "object",
+    "null"
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "type",
+  "version",
+  "task_id",
+  "kind",
+  "objective",
+  "operational_scope",
+  "requested_by",
+  "assigned_employee_id",
+  "status",
+  "correlation_id",
+  "created_at",
+  "payload"
+ ],
+ "additionalProperties": false
+}

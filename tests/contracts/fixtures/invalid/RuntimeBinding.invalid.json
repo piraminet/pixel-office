@@ -1,0 +1,12 @@
+{
+ "version": 1,
+ "id": "ps_0001",
+ "binding_id": "bind.charon.001",
+ "employee_id": "employee.charon",
+ "harness": "openclaw",
+ "harness_instance_id": "gateway.gammaclaw",
+ "profile_label": "Charon (OpenClaw)",
+ "bound_at": "2026-11-20T12:00:00.000Z",
+ "active": true,
+ "type": "RuntimeBinding"
+}

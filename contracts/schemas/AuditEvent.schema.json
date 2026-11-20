@@ -1,0 +1,74 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/bageera/pixel-startup/contracts/schemas/AuditEvent.schema.json",
+ "title": "Pixel Startup AuditEvent contract",
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Za-z0-9_.:@-]+$",
+   "minLength": 4
+  },
+  "type": {
+   "const": "AuditEvent"
+  },
+  "version": {
+   "const": 1
+  },
+  "event_id": {
+   "type": "string",
+   "minLength": 4
+  },
+  "actor_employee_id": {
+   "type": "string",
+   "minLength": 1
+  },
+  "actor_kind": {
+   "enum": [
+    "employee",
+    "owner",
+    "harness",
+    "system",
+    "python_backend"
+   ]
+  },
+  "action": {
+   "type": "string",
+   "minLength": 1
+  },
+  "outcome": {
+   "enum": [
+    "allow",
+    "deny",
+    "error"
+   ]
+  },
+  "occurred_at": {
+   "type": "string",
+   "minLength": 20
+  },
+  "sanitized": {
+   "const": true
+  },
+  "detail": {
+   "type": [
+    "object",
+    "null"
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "type",
+  "version",
+  "event_id",
+  "actor_employee_id",
+  "actor_kind",
+  "action",
+  "outcome",
+  "occurred_at",
+  "sanitized",
+  "detail"
+ ],
+ "additionalProperties": false
+}

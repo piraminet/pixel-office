@@ -1,0 +1,140 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/bageera/pixel-startup/contracts/schemas/AgentIdentity.schema.json",
+ "title": "Pixel Startup AgentIdentity contract",
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Za-z0-9_.:@-]+$",
+   "minLength": 4
+  },
+  "type": {
+   "const": "AgentIdentity"
+  },
+  "version": {
+   "const": 1
+  },
+  "employee_id": {
+   "type": "string",
+   "pattern": "^employee\\.[a-z0-9_-]+$"
+  },
+  "display_name": {
+   "type": "string",
+   "minLength": 1
+  },
+  "sprite_id": {
+   "type": "string",
+   "pattern": "^char_[0-9]+$"
+  },
+  "harness": {
+   "enum": [
+    "openclaw",
+    "hermes",
+    "none"
+   ]
+  },
+  "native_harness_id": {
+   "type": "string"
+  },
+  "harness_instance_id": {
+   "type": "string"
+  },
+  "session_id": {
+   "type": "string"
+  },
+  "current_task_id": {
+   "type": "string"
+  },
+  "operational_scope": {
+   "enum": [
+    "company",
+    "household",
+    "shared",
+    "employee"
+   ]
+  },
+  "authorization_context": {
+   "type": "object",
+   "properties": {
+    "capabilities": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "minItems": 0
+    },
+    "granted_by": {
+     "type": "string",
+     "minLength": 1
+    },
+    "granted_at": {
+     "type": "string",
+     "minLength": 20
+    }
+   },
+   "required": [
+    "capabilities",
+    "granted_by"
+   ],
+   "additionalProperties": false
+  },
+  "lifecycle": {
+   "enum": [
+    "discovered",
+    "unassigned",
+    "registered",
+    "available",
+    "working",
+    "waiting",
+    "blocked",
+    "offline",
+    "retired",
+    "on_demand"
+   ]
+  },
+  "asserted_id": {
+   "type": "string",
+   "pattern": "^employee\\.[a-z0-9_-]+$"
+  },
+  "verified_binding": {
+   "type": [
+    "object",
+    "null"
+   ],
+   "properties": {
+    "binding_id": {
+     "type": "string",
+     "minLength": 4
+    },
+    "verified": {
+     "const": true
+    }
+   },
+   "required": [
+    "binding_id",
+    "verified"
+   ],
+   "additionalProperties": false
+  }
+ },
+ "required": [
+  "id",
+  "type",
+  "version",
+  "employee_id",
+  "display_name",
+  "sprite_id",
+  "harness",
+  "native_harness_id",
+  "harness_instance_id",
+  "session_id",
+  "current_task_id",
+  "operational_scope",
+  "authorization_context",
+  "lifecycle",
+  "asserted_id",
+  "verified_binding"
+ ],
+ "additionalProperties": false
+}

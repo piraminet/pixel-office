@@ -7,7 +7,7 @@ ENVFILE := $(wildcard .env)
 VERSION := $(shell node -p "require('./package.json').version")
 
 .DEFAULT_GOAL := help
-.PHONY: help install test build run stop logs clean tag
+.PHONY: help install test build run stop logs clean tag contracts
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-10s %s\n", $$1, $$2}'
@@ -37,6 +37,10 @@ logs: ## Tail container logs
 tag: ## Tag the current commit as annotated v$(VERSION) (SemVer, from package.json) and push the tag
 	git tag -a v$(VERSION) -m "v$(VERSION)"
 	git push origin v$(VERSION)
+
+contracts: ## Validate G3 language-neutral contracts (node + python), fixture parity
+	node tests/contracts/validate_contracts.js
+	python3 tests/contracts/validate_contracts.py
 
 clean: ## Stop the container and remove the image
 	-docker stop $(IMAGE)

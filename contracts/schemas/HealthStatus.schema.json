@@ -1,0 +1,58 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/bageera/pixel-startup/contracts/schemas/HealthStatus.schema.json",
+ "title": "Pixel Startup HealthStatus contract",
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Za-z0-9_.:@-]+$",
+   "minLength": 4
+  },
+  "type": {
+   "const": "HealthStatus"
+  },
+  "version": {
+   "const": 1
+  },
+  "component": {
+   "type": "string",
+   "minLength": 1
+  },
+  "state": {
+   "enum": [
+    "healthy",
+    "degraded",
+    "unavailable",
+    "blocked"
+   ]
+  },
+  "checked_at": {
+   "type": "string",
+   "minLength": 20
+  },
+  "reason": {
+   "type": [
+    "string",
+    "null"
+   ]
+  },
+  "blockers": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   }
+  }
+ },
+ "required": [
+  "id",
+  "type",
+  "version",
+  "component",
+  "state",
+  "checked_at",
+  "reason",
+  "blockers"
+ ],
+ "additionalProperties": false
+}

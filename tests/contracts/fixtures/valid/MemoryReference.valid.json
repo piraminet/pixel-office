@@ -1,0 +1,13 @@
+{
+ "type": "MemoryReference",
+ "version": 1,
+ "id": "ps_0001",
+ "memory_id": "mem.2001",
+ "collection": "org_shared",
+ "operational_scope": "shared",
+ "provenance": {
+  "source": "memory-palace",
+  "retrieved_at": "2026-11-20T12:00:00.000Z"
+ },
+ "expires_at": null
+}

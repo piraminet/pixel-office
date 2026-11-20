@@ -1,0 +1,53 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/bageera/pixel-startup/contracts/schemas/ApprovalResult.schema.json",
+ "title": "Pixel Startup ApprovalResult contract",
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Za-z0-9_.:@-]+$",
+   "minLength": 4
+  },
+  "type": {
+   "const": "ApprovalResult"
+  },
+  "version": {
+   "const": 1
+  },
+  "request_id": {
+   "type": "string"
+  },
+  "decision": {
+   "enum": [
+    "approved",
+    "denied"
+   ]
+  },
+  "decided_by": {
+   "type": "string",
+   "minLength": 1
+  },
+  "decided_at": {
+   "type": "string",
+   "minLength": 20
+  },
+  "conditions": {
+   "type": [
+    "object",
+    "null"
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "type",
+  "version",
+  "request_id",
+  "decision",
+  "decided_by",
+  "decided_at",
+  "conditions"
+ ],
+ "additionalProperties": false
+}

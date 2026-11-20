@@ -1,0 +1,11 @@
+{
+ "type": "ActivityEvent",
+ "version": 1,
+ "id": "ps_0001",
+ "event_id": "evt.7001",
+ "employee_id": "employee.charon",
+ "kind": "status_change",
+ "source": "observed",
+ "occurred_at": "2026-11-20T12:00:00.000Z",
+ "payload": null
+}

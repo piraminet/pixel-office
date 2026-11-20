@@ -1,0 +1,14 @@
+{
+ "type": "ProviderDescriptor",
+ "version": 1,
+ "id": "ps_0001",
+ "provider_id": "prov.hermes",
+ "category": "agent_harness",
+ "implementation": "python",
+ "state": "candidate",
+ "endpoint": "http://127.0.0.1:18789",
+ "capabilities": [
+  "session.status",
+  "task.dispatch"
+ ]
+}

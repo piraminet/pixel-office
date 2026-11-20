@@ -1,0 +1,11 @@
+{
+ "version": 1,
+ "id": "ps_0001",
+ "capability_id": "cap.briefing.read",
+ "employee_id": "employee.charon",
+ "capability": "briefing.read",
+ "authorized": true,
+ "granted_by": "owner",
+ "expires_at": null,
+ "type": "AgentCapability"
+}

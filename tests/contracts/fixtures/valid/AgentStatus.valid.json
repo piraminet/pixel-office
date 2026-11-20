@@ -1,0 +1,12 @@
+{
+ "type": "AgentStatus",
+ "version": 1,
+ "id": "ps_0001",
+ "employee_id": "employee.charon",
+ "harness": "openclaw",
+ "native_agent_id": "openclaw-charon-main",
+ "status": "online",
+ "source": "observed",
+ "observed_at": "2026-11-20T12:00:00.000Z",
+ "detail": "gateway healthy"
+}

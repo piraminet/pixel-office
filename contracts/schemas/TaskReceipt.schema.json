@@ -1,0 +1,51 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/bageera/pixel-startup/contracts/schemas/TaskReceipt.schema.json",
+ "title": "Pixel Startup TaskReceipt contract",
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Za-z0-9_.:@-]+$",
+   "minLength": 4
+  },
+  "type": {
+   "const": "TaskReceipt"
+  },
+  "version": {
+   "const": 1
+  },
+  "task_id": {
+   "type": "string"
+  },
+  "dispatch_id": {
+   "type": "string",
+   "minLength": 4
+  },
+  "harness": {
+   "enum": [
+    "openclaw",
+    "hermes"
+   ]
+  },
+  "dispatched_at": {
+   "type": "string",
+   "minLength": 20
+  },
+  "dispatched_by": {
+   "type": "string",
+   "minLength": 1
+  }
+ },
+ "required": [
+  "id",
+  "type",
+  "version",
+  "task_id",
+  "dispatch_id",
+  "harness",
+  "dispatched_at",
+  "dispatched_by"
+ ],
+ "additionalProperties": false
+}

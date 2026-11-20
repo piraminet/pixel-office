@@ -1,0 +1,10 @@
+{
+ "version": 1,
+ "id": "ps_0001",
+ "task_id": "task.9001",
+ "status": "completed",
+ "outcome_summary": "Briefing drafted for review",
+ "completed_at": "2026-11-20T12:00:00.000Z",
+ "error": null,
+ "type": "TaskResult"
+}

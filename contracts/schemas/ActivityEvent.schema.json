@@ -1,0 +1,58 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/bageera/pixel-startup/contracts/schemas/ActivityEvent.schema.json",
+ "title": "Pixel Startup ActivityEvent contract",
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Za-z0-9_.:@-]+$",
+   "minLength": 4
+  },
+  "type": {
+   "const": "ActivityEvent"
+  },
+  "version": {
+   "const": 1
+  },
+  "event_id": {
+   "type": "string",
+   "minLength": 4
+  },
+  "employee_id": {
+   "type": "string"
+  },
+  "kind": {
+   "type": "string",
+   "minLength": 1
+  },
+  "source": {
+   "enum": [
+    "observed",
+    "inferred"
+   ]
+  },
+  "occurred_at": {
+   "type": "string",
+   "minLength": 20
+  },
+  "payload": {
+   "type": [
+    "object",
+    "null"
+   ]
+  }
+ },
+ "required": [
+  "id",
+  "type",
+  "version",
+  "event_id",
+  "employee_id",
+  "kind",
+  "source",
+  "occurred_at",
+  "payload"
+ ],
+ "additionalProperties": false
+}

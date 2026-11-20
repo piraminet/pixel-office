@@ -1,0 +1,11 @@
+{
+ "version": 1,
+ "id": "ps_0001",
+ "document_id": "doc.3001",
+ "provider": "minio",
+ "bucket": "pixel-office-docs",
+ "key": "briefings/2026-11-20.md",
+ "size_bytes": 2048,
+ "created_at": "2026-11-20T12:00:00.000Z",
+ "type": "DocumentReference"
+}

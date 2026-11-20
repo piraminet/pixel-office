@@ -1,0 +1,60 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/bageera/pixel-startup/contracts/schemas/DocumentReference.schema.json",
+ "title": "Pixel Startup DocumentReference contract",
+ "type": "object",
+ "properties": {
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Za-z0-9_.:@-]+$",
+   "minLength": 4
+  },
+  "type": {
+   "const": "DocumentReference"
+  },
+  "version": {
+   "const": 1
+  },
+  "document_id": {
+   "type": "string",
+   "minLength": 4
+  },
+  "provider": {
+   "type": "string",
+   "minLength": 1
+  },
+  "bucket": {
+   "type": "string",
+   "minLength": 1
+  },
+  "key": {
+   "type": "string",
+   "minLength": 1
+  },
+  "sha256": {
+   "type": "string",
+   "pattern": "^[a-f0-9]{64}$"
+  },
+  "size_bytes": {
+   "type": "integer",
+   "minimum": 0
+  },
+  "created_at": {
+   "type": "string",
+   "minLength": 20
+  }
+ },
+ "required": [
+  "id",
+  "type",
+  "version",
+  "document_id",
+  "provider",
+  "bucket",
+  "key",
+  "sha256",
+  "size_bytes",
+  "created_at"
+ ],
+ "additionalProperties": false
+}
