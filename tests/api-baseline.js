@@ -14,6 +14,7 @@ const PORT = 19031;
 const BASE = `http://127.0.0.1:${PORT}`;
 const DATA_DIR = fs.mkdtempSync('/tmp/pixel-g1-');
 const FIXTURE_DIR = process.env.BASELINE_FIXTURES || path.join(__dirname, '..', 'docs', 'migration', 'fixtures');
+const TOKEN = 'synthetic-api-token';
 fs.mkdirSync(FIXTURE_DIR, { recursive: true });
 
 // Synthetic env: overrides anything dotenv would load, nothing real touched.
@@ -21,6 +22,8 @@ const ENV = Object.assign({}, process.env, {
   PORT: String(PORT),
   PIXEL_DATA_DIR: DATA_DIR,
   DASHBOARD_PASSWORD: 'pixel-office-g1-synthetic',
+  PIXEL_API_TOKEN: 'synthetic-api-token',
+  PIXEL_SESSION_SECRET: 'synthetic-session-secret-for-tests',
   LITELLM_API_URL: 'http://127.0.0.1:9',       // deterministic refused connection
   LITELLM_API_KEY: '',
   MAIL2_HOST: '127.0.0.1',                      // SSH to non-existent key → fail fast
@@ -113,11 +116,15 @@ const stopServer = () => new Promise((resolve) => {
   check('GET /api/messages → 200 (6 ids)', r.status === 200 && Object.keys(JSON.parse(r.body)).length === 6);
   r = await probe('GET /api/log (empty)', 'GET', '/api/log');
   check('GET /api/log → 200 (empty array tolerated)', r.status === 200 && Array.isArray(JSON.parse(r.body)));
-  r = await probe('POST /api/agent/0/move', 'POST', '/api/agent/0/move', { x: 10, y: 20, state: 'idle' });
-  check('POST /api/agent/0/move → 200 + echo agent', r.status === 200 && JSON.parse(r.body).agent.x === 10);
-  r = await probe('POST /api/agent/99/move', 'POST', '/api/agent/99/move', { x: 1, y: 1 });
+  r = await probe('POST /api/agent/0/move (unauth)', 'POST', '/api/agent/0/move', { x: 10, y: 20, state: 'idle' });
+  check('POST move unauthenticated → 401', r.status === 401);
+  r = await probe('POST /api/agent/0/move (token)', 'POST', '/api/agent/0/move', { x: 10, y: 20, state: 'idle' }, { Authorization: `Bearer ${TOKEN}` });
+  check('POST /api/agent/0/move → 200 + echo agent (token)', r.status === 200 && JSON.parse(r.body).agent.x === 10);
+  r = await probe('POST /api/agent/99/move (unauth)', 'POST', '/api/agent/99/move', { x: 1, y: 1 });
+  check('POST unknown agent unauthenticated → 401 (auth before existence)', r.status === 401);
+  r = await probe('POST /api/agent/99/move (token)', 'POST', '/api/agent/99/move', { x: 1, y: 1 }, { Authorization: `Bearer ${TOKEN}` });
   check('POST /api/agent/99/move → 404', r.status === 404);
-  r = await probe('POST /api/agent/0/command', 'POST', '/api/agent/0/command', { type: 'move', x: 300, y: 300 });
+  r = await probe('POST /api/agent/0/command (token)', 'POST', '/api/agent/0/command', { type: 'move', x: 300, y: 300 }, { Authorization: `Bearer ${TOKEN}` });
   check('POST command → 200', r.status === 200);
   r = await probe('GET /api/agent/0/command (consume)', 'GET', '/api/agent/0/command');
   check('GET command returns pushed body', JSON.parse(r.body).x === 300);
@@ -125,18 +132,23 @@ const stopServer = () => new Promise((resolve) => {
   check('GET command consumed once → null', JSON.parse(r.body) === null);
   r = await probe('GET /api/ai/status (offline)', 'GET', '/api/ai/status');
   check('GET /api/ai/status offline → 200 available:false', r.status === 200 && JSON.parse(r.body).available === false);
-  r = await probe('POST /api/ai/chat (offline)', 'POST', '/api/ai/chat', { prompt: 'ping' });
-  check('POST /api/ai/chat offline → 502/500 error', r.status >= 500);
+  r = await probe('POST /api/ai/chat (unauth)', 'POST', '/api/ai/chat', { prompt: 'ping' });
+  check('POST /api/ai/chat unauthenticated → 401 (G2 S-08)', r.status === 401);
+  r = await probe('POST /api/ai/chat (token, offline LLM)', 'POST', '/api/ai/chat', { prompt: 'ping', systemPrompt: 'ignored' }, { Authorization: `Bearer ${TOKEN}` });
+  check('POST /api/ai/chat token + offline LLM → 502/500 (server-owned prompt only)', r.status >= 500);
   r = await probe('POST /api/auth/login wrong', 'POST', '/api/auth/login', { password: 'wrong' });
   check('auth/login wrong → 401', r.status === 401);
   const login = await probe('POST /api/auth/login correct', 'POST', '/api/auth/login', { password: 'pixel-office-g1-synthetic' });
-  check('auth/login correct → 200 success', login.status === 200 && JSON.parse(login.body).success === true);
-  check('auth/login issues NO cookie/session', !login.headers['set-cookie']);
-  r = await probe('POST /api/config (mutation w/o auth)', 'POST', '/api/config', { agents: [], rooms: [] });
-  check('POST /api/config unauthenticated → 200 (finding S-05)', r.status === 200);
+  check('auth/login correct → 200 success + HttpOnly session cookie', login.status === 200 && JSON.parse(login.body).success === true && /pixel_session=/.test((login.headers['set-cookie'] || [])[0] || ''));
+  r = await probe('POST /api/config (unauthenticated)', 'POST', '/api/config', { agents: [], rooms: [] });
+  check('POST /api/config unauthenticated → 401 (G2 remediation of S-05)', r.status === 401);
+  r = await probe('POST /api/config (bearer token)', 'POST', '/api/config', { agents: [], rooms: [] }, { Authorization: `Bearer ${TOKEN}` });
+  check('POST /api/config with bearer token → 200 (automation path)', r.status === 200);
   r = await probe('GET /api/presence', 'GET', '/api/presence');
   check('GET /api/presence → 200 with hermes/openclaw keys', r.status === 200 && !!JSON.parse(r.body).hermes);
-  r = await probe('GET /api/briefing (offline integrations)', 'GET', '/api/briefing');
+  r = await probe('GET /api/briefing (unauth)', 'GET', '/api/briefing');
+  check('GET /api/briefing unauthenticated → 401 (G2, internal aggregate)', r.status === 401);
+  r = await probe('GET /api/briefing (token, offline integrations)', 'GET', '/api/briefing', null, { Authorization: `Bearer ${TOKEN}` });
   const brief = JSON.parse(r.body);
   check('GET /api/briefing → 200, AI unavailable gracefully', r.status === 200 && brief.ai.available === false);
   r = await probe('GET /api/email/accounts', 'GET', '/api/email/accounts');
@@ -146,28 +158,45 @@ const stopServer = () => new Promise((resolve) => {
   r = await probe('GET /api/email/inbox (offline)', 'GET', '/api/email/inbox?limit=1&account=jb');
   check('GET /api/email/inbox offline → 200-with-error object (baseline quirk: swallowed errors)',
     r.status === 200 && typeof JSON.parse(r.body).error === 'string');
-  r = await probe('GET /api/vault/status (unset creds)', 'GET', '/api/vault/status');
+  r = await probe('GET /api/vault/status (token, unset creds)', 'GET', '/api/vault/status', null, { Authorization: `Bearer ${TOKEN}` });
   check('GET /api/vault/status → 200 configured:false', r.status === 200 && JSON.parse(r.body).configured === false);
-  r = await probe('GET /api/vault/item/synthetic-id (unset creds)', 'GET', '/api/vault/item/synthetic-id');
-  check('GET /api/vault/item/:id no-creds → 200-with-error object (baseline quirk)',
-    r.status === 200 && typeof JSON.parse(r.body).error === 'string');
+  r = await probe('GET /api/vault/item/synthetic-id', 'GET', '/api/vault/item/synthetic-id');
+  check('GET /api/vault/item/:id → 403 DISABLED (G2 remediation of S-02)', r.status === 403);
+  r = await probe('POST /api/email/send (unauth)', 'POST', '/api/email/send', { to: 'x@y.z', subject: 's' });
+  check('POST /api/email/send → 403 DISABLED (G2 remediation of S-03)', r.status === 403);
   r = await probe('GET /api/sync/status', 'GET', '/api/sync/status');
   check('GET /api/sync/status → degraded/500 honest', r.status >= 200);
   r = await probe('GET /api/contacts/search?q=test', 'GET', '/api/contacts/search?q=test');
-  check('GET /api/contacts/search → 200 empty (no CRM DB present)', r.status === 200 && JSON.parse(r.body).count === 0);
+  check('GET /api/contacts/search → 403 DISABLED (G2 remediation of S-04)', r.status === 403);
   r = await probe('static /server.js', 'GET', '/server.js');
-  check('GET /server.js → 200 SOURCE DOWNLOAD (finding S-01)', r.status === 200 && r.body.includes('express'));
+  check('GET /server.js → 404 (G2 remediation of S-01: source not served)', r.status === 404);
   r = await probe('static /.env', 'GET', '/.env');
-  check('GET /.env → 200 SECRET DOWNLOAD (finding S-01)', r.status === 200);
+  check('GET /.env → 404 (G2 remediation of S-01: secrets not served)', r.status === 404);
   r = await probe('static /package.json', 'GET', '/package.json');
-  check('GET /package.json → 200 (finding S-01)', r.status === 200);
+  check('GET /package.json → 404 (G2 remediation of S-01)', r.status === 404);
+  r = await probe('static traversal /assets/../server.js', 'GET', '/assets/../server.js');
+  check('GET /assets/../server.js → 404 (traversal blocked)', r.status === 404);
+  r = await probe('static / (index)', 'GET', '/');
+  check('GET / → 200 index.html (public allowlist)', r.status === 200 && r.body.includes('<html'));
+  r = await probe('static /assets/characters/char_0.png', 'GET', '/assets/characters/char_0.png');
+  check('GET /assets/characters/char_0.png → 200 (public sprite)', r.status === 200);
+  r = await probe('unknown page /nope', 'GET', '/nope');
+  check('unknown non-API path → 404 (no accidental page serving)', r.status === 404);
   r = await probe('unknown /api/nope', 'GET', '/api/nope');
-  check('unknown /api/* → 200 index.html (catch-all masks)', r.status === 200 && r.body.includes('<html'));
+  check('unknown /api/* → 404 JSON (catch-all no longer masks)', r.status === 404 && JSON.parse(r.body).error === 'not found');
+
+  // --- Login rate limiting (G2) ---
+  let rateLimited = false;
+  for (let i = 0; i < 6; i++) {
+    const rr = await req('POST', '/api/auth/login', { password: 'wrong' });
+    if (rr.status === 429) { rateLimited = true; break; }
+  }
+  check('login rate limit: 6 rapid wrong attempts hit 429', rateLimited);
 
   fs.writeFileSync(path.join(FIXTURE_DIR, 'g1-probes.json'), JSON.stringify(fixtures, null, 2));
 
   // --- Persistent config + restart recovery ---
-  r = await req('POST', '/api/config', { agents: [{ id: 0, name: 'Curator', role: 'Archivist', room: 'Archives', color: 0, x: 311, y: 681, state: 'idle', active: true }], rooms: [] });
+  r = await req('POST', '/api/config', { agents: [{ id: 0, name: 'Curator', role: 'Archivist', room: 'Archives', color: 0, x: 311, y: 681, state: 'idle', active: true }], rooms: [] }, { Authorization: `Bearer ${TOKEN}` });
   check('POST /api/config persists to disk', r.status === 200 && fs.existsSync(path.join(DATA_DIR, 'agents.json')));
   await stopServer();
   const boot2 = await startServer();
@@ -179,7 +208,7 @@ const stopServer = () => new Promise((resolve) => {
     after.agents.some(a => a.name === 'Curator' && a.x === 311));
   check('restart quirk: Ghostface auto-reinserted into custom rosters (server.js migration)',
     names.includes('Ghostface'), 'roster=' + names.join(','));
-  r = await req('POST', '/api/agent/0/command', { type: 'move', x: 42, y: 42 });
+  r = await req('POST', '/api/agent/0/command', { type: 'move', x: 42, y: 42 }, { Authorization: `Bearer ${TOKEN}` });
   await stopServer();
   await startServer();
   r = await req('GET', '/api/agent/0/command');

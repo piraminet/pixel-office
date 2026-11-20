@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const dotenv = require('dotenv');
 const email = require('./email');
 const contacts = require('./contacts');
@@ -24,7 +25,22 @@ const resolveDataDir = (dir) => {
 const DATA_DIR = resolveDataDir(process.env.PIXEL_DATA_DIR);
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
-const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || 'pixeladmin';
+const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || '';
+const PIXEL_API_TOKEN = process.env.PIXEL_API_TOKEN || '';
+const PIXEL_SESSION_SECRET = process.env.PIXEL_SESSION_SECRET || crypto.randomBytes(32).toString('hex');
+const PIXEL_ALLOW_NO_PASSWORD = process.env.PIXEL_ALLOW_NO_PASSWORD === '1';
+const AUTH_ENABLED = !!DASHBOARD_PASSWORD;
+const SESSION_TTL_MS = 12 * 3600 * 1000;
+
+// Boot guard: refuse to run an admin-less public copy of every API/asset.
+// Explicit kiosk mode (PIXEL_ALLOW_NO_PASSWORD=1) restores the legacy open behavior.
+if (!AUTH_ENABLED && !PIXEL_ALLOW_NO_PASSWORD) {
+  console.error('FATAL: DASHBOARD_PASSWORD is not set. Set it in .env, or set PIXEL_ALLOW_NO_PASSWORD=1 for explicit kiosk mode.');
+  process.exit(1);
+}
+if (!AUTH_ENABLED) {
+  console.warn('WARNING: PIXEL_ALLOW_NO_PASSWORD=1 — all routes are PUBLIC (kiosk mode).');
+}
 
 // LiteLLM API configuration (OpenAI-compatible)
 const LITELLM_API_URL = process.env.LITELLM_API_URL || 'https://litellm.blacktech.dev';
@@ -103,8 +119,70 @@ const persistMapData = (updates = {}) => {
 const app = express();
 const PORT = parseInt(process.env.PORT, 10) || 19000;
 
+// === G2 security: explicit public-file allowlist (never the repo root) ===
+const PUBLIC_FILES = {
+  '/index.html': 'index.html',
+  '/dashboard.html': 'dashboard.html',
+  '/favicon.ico': null
+};
+const ASSETS_DIR = path.join(__dirname, 'assets');
+
+app.use((req, res, next) => {
+  let p = req.path === '/' ? '/index.html' : req.path;
+  if (PUBLIC_FILES[p] !== undefined) {
+    const file = PUBLIC_FILES[p];
+    if (!file) return res.status(404).end();
+    return res.sendFile(path.join(__dirname, file));
+  }
+  if (p.startsWith('/assets/')) {
+    const rel = p.slice('/assets/'.length);
+    const full = path.resolve(ASSETS_DIR, rel.replace(/^[/\\]+/, ''));
+    if (full === ASSETS_DIR || !full.startsWith(ASSETS_DIR + path.sep)) {
+      return res.status(404).end('Not found');
+    }
+    if (/\.(png|jpg|jpeg|webp|gif|svg)$/i.test(full) && fs.existsSync(full)) {
+      return res.sendFile(full);
+    }
+    return res.status(404).end('Not found');
+  }
+  next();
+});
+
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+
+// === G2 security: authentication (signed cookie session OR bearer token) ===
+// Declared here, ABOVE every route registration (routes below close over requireAuth).
+const signSession = (ts) => crypto.createHmac('sha256', PIXEL_SESSION_SECRET).update(`pixel-office-session:${ts}`).digest('hex');
+
+const parseCookies = (header) => {
+  const out = {};
+  (header || '').split(';').forEach(part => {
+    const idx = part.indexOf('=');
+    if (idx > 0) out[part.slice(0, idx).trim()] = part.slice(idx + 1).trim();
+  });
+  return out;
+};
+
+const sessionFromCookie = (header) => {
+  const raw = parseCookies(header)['pixel_session'];
+  if (!raw) return null;
+  const dot = raw.indexOf('.');
+  if (dot < 1) return null;
+  const ts = parseInt(raw.slice(0, dot), 10);
+  const mac = raw.slice(dot + 1);
+  if (!ts || Date.now() - ts > SESSION_TTL_MS || mac.length !== 64) return null;
+  const expect = signSession(ts);
+  if (!crypto.timingSafeEqual(Buffer.from(mac), Buffer.from(expect))) return null;
+  return { ts };
+};
+
+const requireAuth = (req, res, next) => {
+  if (!AUTH_ENABLED) return next(); // explicit kiosk mode
+  const h = req.headers.authorization || '';
+  if (PIXEL_API_TOKEN && h === `Bearer ${PIXEL_API_TOKEN}`) return next(); // automation
+  if (sessionFromCookie(req.headers.cookie)) return next();               // browser
+  return res.status(401).json({ error: 'authentication required' });
+};
 
 // Initial config: all agents available, activated based on checks
 let config = {
@@ -179,10 +257,11 @@ app.get('/api/config', (req, res) => {
   });
 });
 
-// LiteLLM AI proxy endpoint — OpenAI-compatible, no client API keys needed
-app.post('/api/ai/chat', async (req, res) => {
+// LiteLLM AI proxy endpoint — OpenAI-compatible, authenticated; client systemPrompt
+// is IGNORED (finding S-08): callers cannot inject arbitrary personas/contexts.
+app.post('/api/ai/chat', requireAuth, async (req, res) => {
   try {
-    const { prompt, systemPrompt } = req.body || {};
+    const { prompt } = req.body || {};
     if (!prompt) {
       return res.status(400).json({ error: 'Missing prompt' });
     }
@@ -201,11 +280,9 @@ app.post('/api/ai/chat', async (req, res) => {
       } catch(e) { /* ignore briefing context errors */ }
     }
 
-    // Use client-provided system prompt if present; otherwise use a general office context
+    // Use a server-owned system prompt; client-supplied system prompts are not trusted
     const defaultContext = `You are the AI Director of Nocturnal Inc Pixel Office. Keep responses brief.`;
-    const fullSystemPrompt = systemPrompt
-      ? `${systemPrompt}${briefingContext}`
-      : `${defaultContext}${briefingContext}`;
+    const fullSystemPrompt = `${defaultContext}${briefingContext}`;
 
     const litellmResponse = await fetch(`${LITELLM_API_URL}/v1/chat/completions`, {
       method: 'POST',
@@ -264,18 +341,30 @@ app.get('/api/ai/status', async (req, res) => {
 });
 
 console.log('Dashboard auth route ready');
+const loginFailures = new Map(); // ip -> {count, until}
 app.post('/api/auth/login', (req, res) => {
+  if (!AUTH_ENABLED) {
+    return res.json({ success: true });
+  }
+  const ip = req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  const rec = loginFailures.get(ip) || { count: 0, until: 0 };
+  if (rec.count >= 5 && now < rec.until) {
+    return res.status(429).json({ success: false, error: 'too many attempts, retry later' });
+  }
   const { password } = req.body || {};
-  if (!DASHBOARD_PASSWORD) {
-    return res.json({ success: true });
-  }
   if (password && password === DASHBOARD_PASSWORD) {
+    loginFailures.delete(ip);
+    const ts = Date.now();
+    res.setHeader('Set-Cookie',
+      `pixel_session=${ts}.${signSession(ts)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`);
     return res.json({ success: true });
   }
+  loginFailures.set(ip, { count: rec.count + 1, until: now + 15 * 60 * 1000 });
   return res.status(401).json({ success: false });
 });
 
-app.post('/api/config', (req, res) => {
+app.post('/api/config', requireAuth, (req, res) => {
   config = req.body || {};
   if (!Array.isArray(config.agents)) {
     config.agents = defaultAgents;
@@ -290,7 +379,7 @@ app.post('/api/config', (req, res) => {
   res.json({ success: true, config });
 });
 
-app.post('/api/agent/:id/move', (req, res) => {
+app.post('/api/agent/:id/move', requireAuth, (req, res) => {
   const id = parseInt(req.params.id);
   const { x, y, state } = req.body;
   const agent = config.agents.find(a => a.id === id);
@@ -320,7 +409,7 @@ app.get('/api/log', (req, res) => {
 });
 
 // API to clear log
-app.post('/api/log/clear', (req, res) => {
+app.post('/api/log/clear', requireAuth, (req, res) => {
   try {
     fs.writeFileSync(LOG_PATH, '');
     res.json({ success: true });
@@ -330,7 +419,7 @@ app.post('/api/log/clear', (req, res) => {
 });
 
 // Status briefing — aggregates real data, no AI dependency
-app.get('/api/briefing', async (req, res) => {
+app.get('/api/briefing', requireAuth, async (req, res) => {
   const briefing = {
     timestamp: new Date().toISOString(),
     organization: 'Nocturnal Inc',
@@ -403,7 +492,7 @@ app.get('/api/briefing', async (req, res) => {
 });
 
 // AI-generated Nocturnal briefing — Charon delivers a natural language status report
-app.get('/api/briefing/ai', async (req, res) => {
+app.get('/api/briefing/ai', requireAuth, async (req, res) => {
   try {
     // Gather briefing data (reuse the same logic)
     const briefing = {
@@ -615,7 +704,7 @@ app.get('/api/agent/:id/command', (req, res) => {
 });
 
 // Endpoint to confirm agent physically arrived at destination
-app.post('/api/agent/:id/arrived', (req, res) => {
+app.post('/api/agent/:id/arrived', requireAuth, (req, res) => {
   const id = parseInt(req.params.id);
   const { location } = req.body;
   
@@ -629,14 +718,14 @@ app.post('/api/agent/:id/arrived', (req, res) => {
   console.log(`[Arrival] Agent ${id} arrived at: ${location}`);
   res.json({ success: true });
 });
-app.post('/api/agent/:id/command/ack', (req, res) => {
+app.post('/api/agent/:id/command/ack', requireAuth, (req, res) => {
   const id = parseInt(req.params.id);
   agentCommands[id] = null;
   commandTimestamps[id] = null;
   res.json({ success: true });
 });
 
-app.post('/api/agent/:id/command', (req, res) => {
+app.post('/api/agent/:id/command', requireAuth, (req, res) => {
   const id = parseInt(req.params.id);
   agentCommands[id] = req.body;
   commandTimestamps[id] = Date.now();
@@ -667,7 +756,7 @@ app.get('/api/presence', async (req, res) => {
 });
 
 // API to save collision map
-app.post('/api/collision', (req, res) => {
+app.post('/api/collision', requireAuth, (req, res) => {
   try {
     persistMapData({ collision: req.body });
     console.log('Collision map saved');
@@ -678,7 +767,7 @@ app.post('/api/collision', (req, res) => {
 });
 
 // API to save rooms
-app.post('/api/rooms', (req, res) => {
+app.post('/api/rooms', requireAuth, (req, res) => {
   try {
     const updated = persistMapData({ rooms: req.body });
     if (Array.isArray(updated.rooms)) {
@@ -716,17 +805,13 @@ app.get('/api/rooms', (req, res) => {
 });
 
 // === Contacts API (CRM) ===
+// NOTE (G2, finding S-04): search endpoints are DISABLED — the search term reaches
+// a shell-interpolated sqlite3 exec (contacts.js). Disabled until the Python
+// backend parameterizes queries (G6) or the exec path is removed.
 
 // Search contacts
 app.get('/api/contacts/search', (req, res) => {
-  try {
-    const term = req.query.q || '';
-    const limit = parseInt(req.query.limit) || 20;
-    const results = contacts.searchContacts(term, limit);
-    res.json({ results, count: results.length });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  res.status(403).json({ error: 'disabled pending secure rewrite (security finding S-04)' });
 });
 
 // Get contact by ID
@@ -752,14 +837,7 @@ app.get('/api/contacts/:id/interactions', (req, res) => {
 
 // Search organizations
 app.get('/api/orgs/search', (req, res) => {
-  try {
-    const term = req.query.q || '';
-    const limit = parseInt(req.query.limit) || 20;
-    const results = contacts.searchOrganizations(term, limit);
-    res.json({ results, count: results.length });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  res.status(403).json({ error: 'disabled pending secure rewrite (security finding S-04)' });
 });
 
 // Sync status across all platforms
@@ -828,24 +906,22 @@ app.get('/api/email/:id', async (req, res) => {
   }
 });
 
-// Send email
-app.post('/api/email/send', async (req, res) => {
-  try {
-    const { to, subject, body, account } = req.body || {};
-    if (!to || !subject) {
-      return res.status(400).json({ error: 'Missing to or subject' });
-    }
-    const result = await email.sendEmail(to, subject, body || '', account || null);
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// Send email — DISABLED (G2, finding S-03): unauthenticated external delivery.
+// Returns 403 until authorized draft-first delivery ships (G13).
+app.post('/api/email/send', (req, res) => {
+  res.status(403).json({ error: 'disabled pending authorized delivery flow (security finding S-03)' });
 });
 
 // === Vaultwarden API ===
+// NOTE (G2, finding S-02): full cipher retrieval is DISABLED — `getItem` returns
+// passwords/notes verbatim. Disabled until the G10 capability executor provides
+// scoped, audited, secret-redacting execution.
+app.get('/api/vault/item/:id', (req, res) => {
+  res.status(403).json({ error: 'raw credential retrieval disabled (security finding S-02)' });
+});
 
 // Get vault status
-app.get('/api/vault/status', async (req, res) => {
+app.get('/api/vault/status', requireAuth, async (req, res) => {
   try {
     const status = await vault.getStatus();
     res.json(status);
@@ -855,7 +931,7 @@ app.get('/api/vault/status', async (req, res) => {
 });
 
 // Search vault items
-app.get('/api/vault/search', async (req, res) => {
+app.get('/api/vault/search', requireAuth, async (req, res) => {
   try {
     const query = req.query.q || '';
     const type = req.query.type ? parseInt(req.query.type) : null;
@@ -880,7 +956,7 @@ app.get('/api/vault/item/:id', async (req, res) => {
 });
 
 // List folders
-app.get('/api/vault/folders', async (req, res) => {
+app.get('/api/vault/folders', requireAuth, async (req, res) => {
   try {
     const result = await vault.listFolders();
     res.json(result);
@@ -889,8 +965,8 @@ app.get('/api/vault/folders', async (req, res) => {
   }
 });
 
-// List collections
-app.get('/api/vault/collections', async (req, res) => {
+// List collections (org)
+app.get('/api/vault/collections', requireAuth, async (req, res) => {
   try {
     const result = await vault.listCollections();
     res.json(result);
@@ -900,7 +976,8 @@ app.get('/api/vault/collections', async (req, res) => {
 });
 
 app.use((req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  // No client-side routing exists (two static pages); unknown paths 404 strictly.
+  res.status(404).json({ error: 'not found' });
 });
 
 app.listen(PORT, '0.0.0.0', () => {

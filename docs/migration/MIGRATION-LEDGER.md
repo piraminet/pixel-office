@@ -77,6 +77,23 @@ Acceptance criteria:
 - C2.8 Office UI (unauthenticated viewer flows) still works; dashboard login now functional end-to-end (regression).
 - C2.9 `npm test` + new security regression suite green.
 
+**Objective:** close S-01..S-08 (+S-11 partial) in the active JS app before any new integration; disable unsecurable capabilities; consistent auth on sensitive routes; keep office viewer and dashboard working.
+
+**Implementation (smallest sufficient, zero new deps):**
+- `server.js`: static allowlist (index/dashboard + `/assets/**` with `path.resolve` containment + image extension check), strict 404 catch-all (both pages have no client-side routing), HMAC-signed `pixel_session` HttpOnly cookie (12h, timing-safe compare), `requireAuth` middleware (cookie OR `Bearer PIXEL_API_TOKEN`), login rate limit (5 fails/15min/IP), boot guard (`DASHBOARD_PASSWORD` required unless `PIXEL_ALLOW_NO_PASSWORD=1`), `POST /api/ai/chat` gated + client `systemPrompt` ignored (server-owned prompt only), `/api/briefing*` gated, vault CRUD routes gated, `/api/vault/item/:id` → 403, `/api/email/send` → 403, `/api/contacts/search` + `/api/orgs/search` → 403, default password removed.
+- `index.html`: 🔒 Owner login chip (prompt → login → cookie), 401-aware chat/briefing errors (bilingual `loginNeeded` key), client `systemPrompt` no longer sent.
+- Scripts (`pep_email_checker.sh`, `marian_calendar_checker.sh`, `dustin_doc_tokens.sh`): `AUTH_ARGS=( -H "Authorization: Bearer $PIXEL_API_TOKEN" )` when token set, inserted into their `send_command` curls.
+- `.env.example` / README: `PIXEL_API_TOKEN`, `PIXEL_SESSION_SECRET`, boot-guard + disabled-capability documentation. CHANGELOG updated.
+
+**Test commands + results:**
+- `npm test` → presence 11 PASS + `tests/api-baseline.js` **44 PASS / 0 FAIL** (includes the security regression section: static 404s incl. `/assets/../server.js` traversal, 401s on all mutating/sensitive routes w/o auth, token path 200s, cookie issuance, disabled-route 403s, rate-limit 429, unknown-path 404, restart recovery).
+- In-page/browser evidence: office renders intact post-gating (6 chars, chips); briefing button shows localized "Owner login required"; `ownerLogin()` → "Owner session established"; subsequent briefing fails 500 at the (deliberately offline) LLM — i.e., auth passed, external dependency honestly failed; dashboard login flow + save works with cookie.
+- Cookie-vs-no-cookie curl proof: `POST /api/config` 401 unauthenticated / **200 with login cookie jar** / 200 with token.
+
+**Design decisions:** auth-before-existence on unknown agents (401 over 404 for unauth); read-mostly public office surface (config/log/presence/email reads) — documented residual; contacts `:id`/`interactions`/`sync/status` left public (integer-param safe) pending G10 authorization; error-message redaction deferred to G4 (Python standardizes response shapes) — recorded as PARTIAL for S-11.
+
+**Verdict: PASS** (C2.1–C2.9 executed and satisfied; S-11 redaction sweep explicitly deferred with rationale). Files: server.js, index.html, 3 scripts, .env.example, README.md, CHANGELOG.md, tests/api-baseline.js, fixtures. Limitations: in-memory rate-limit + per-boot session secret (reset on restart) — acceptable for MVP office scale, noted. Security implications: no new crypto (Node stdlib HMAC); secrets never logged. Rollback: revert the G2 commit; scripts + README document behavior change.
+
 ---
 
 ## G21 — End-to-end MVP acceptance (registered early for scope control)

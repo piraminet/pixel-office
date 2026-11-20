@@ -70,8 +70,10 @@ services/pixel
 
 ## 🔐 Dashboard & auth
 
-- Login via `POST /api/auth/login`; password comes from `.env` (`DASHBOARD_PASSWORD`).
-- Leave the password blank only for kiosk demos.
+- Login via `POST /api/auth/login`; password comes from `.env` (`DASHBOARD_PASSWORD`). **Boot refuses to start without it** unless `PIXEL_ALLOW_NO_PASSWORD=1` (explicit kiosk mode).
+- Successful login issues an **HttpOnly signed session cookie** (`pixel_session`, 12h, HMAC-SHA256 with `PIXEL_SESSION_SECRET` — random per boot if unset). Mutating and sensitive routes require the session; automation (bash scripts) authenticates with `Authorization: Bearer $PIXEL_API_TOKEN`.
+- **Disabled pending secure reimplementation** (see `docs/migration/security-findings.md`): raw vault item retrieval (`/api/vault/item/:id`), external email send (`/api/email/send`), contacts/org search (SQL→shell injection class).
+- The office viewer stays read-mostly (config/log/presence/email reads are public); AI Director chat + briefings require an owner session — use the 🔒 **Owner login** in the office overlay.
 - Each save from the dashboard rewrites `data/agents.json` + `data/map.json`.
 
 ## 🕹️ REST API cheat sheet

@@ -18,6 +18,9 @@ fi
 DEFAULT_PORT="${PORT:-19000}"
 SERVER_DEFAULT="http://127.0.0.1:${DEFAULT_PORT}"
 SERVER="${PIXEL_SERVER:-${SERVER_DEFAULT}}"
+# Auth for POST endpoints (G2): token from .env (PIXEL_API_TOKEN)
+AUTH_ARGS=()
+[ -n "${PIXEL_API_TOKEN:-}" ] && AUTH_ARGS=(-H "Authorization: Bearer ${PIXEL_API_TOKEN}")
 LOG_FILE="${PIXEL_DATA_DIR}/pixel_actions.jsonl"
 DUSTIN_AGENT_ID=0
 DOC_AGENT_ID=3
@@ -58,7 +61,7 @@ send_command() {
     local msg=$5
     local sitAfter=$6
 
-    curl -s -X POST "$SERVER/api/agent/$agent/command" \
+    curl -s "${AUTH_ARGS[@]}" -X POST "$SERVER/api/agent/$agent/command" \
         -H "Content-Type: application/json" \
         -d "{\"action\":\"$action\",\"tileX\":$tileX,\"tileY\":$tileY,\"msg\":\"$msg\",\"sitAfter\":$sitAfter}" > /dev/null
 }

@@ -1,6 +1,6 @@
 {
   "boot": {
-    "startupMs": 315,
+    "startupMs": 159,
     "log": [
       "Using initial configuration",
       "Dashboard auth route ready",
@@ -89,7 +89,16 @@
       }
     },
     {
-      "name": "POST /api/agent/0/move",
+      "name": "POST /api/agent/0/move (unauth)",
+      "method": "POST",
+      "path": "/api/agent/0/move",
+      "status": 401,
+      "bodyShape": {
+        "error": "string"
+      }
+    },
+    {
+      "name": "POST /api/agent/0/move (token)",
       "method": "POST",
       "path": "/api/agent/0/move",
       "status": 200,
@@ -109,7 +118,16 @@
       }
     },
     {
-      "name": "POST /api/agent/99/move",
+      "name": "POST /api/agent/99/move (unauth)",
+      "method": "POST",
+      "path": "/api/agent/99/move",
+      "status": 401,
+      "bodyShape": {
+        "error": "string"
+      }
+    },
+    {
+      "name": "POST /api/agent/99/move (token)",
       "method": "POST",
       "path": "/api/agent/99/move",
       "status": 404,
@@ -118,7 +136,7 @@
       }
     },
     {
-      "name": "POST /api/agent/0/command",
+      "name": "POST /api/agent/0/command (token)",
       "method": "POST",
       "path": "/api/agent/0/command",
       "status": 200,
@@ -157,7 +175,16 @@
       }
     },
     {
-      "name": "POST /api/ai/chat (offline)",
+      "name": "POST /api/ai/chat (unauth)",
+      "method": "POST",
+      "path": "/api/ai/chat",
+      "status": 401,
+      "bodyShape": {
+        "error": "string"
+      }
+    },
+    {
+      "name": "POST /api/ai/chat (token, offline LLM)",
       "method": "POST",
       "path": "/api/ai/chat",
       "status": 500,
@@ -184,7 +211,16 @@
       }
     },
     {
-      "name": "POST /api/config (mutation w/o auth)",
+      "name": "POST /api/config (unauthenticated)",
+      "method": "POST",
+      "path": "/api/config",
+      "status": 401,
+      "bodyShape": {
+        "error": "string"
+      }
+    },
+    {
+      "name": "POST /api/config (bearer token)",
       "method": "POST",
       "path": "/api/config",
       "status": 200,
@@ -252,7 +288,16 @@
       }
     },
     {
-      "name": "GET /api/briefing (offline integrations)",
+      "name": "GET /api/briefing (unauth)",
+      "method": "GET",
+      "path": "/api/briefing",
+      "status": 401,
+      "bodyShape": {
+        "error": "string"
+      }
+    },
+    {
+      "name": "GET /api/briefing (token, offline integrations)",
       "method": "GET",
       "path": "/api/briefing",
       "status": 200,
@@ -342,7 +387,7 @@
       }
     },
     {
-      "name": "GET /api/vault/status (unset creds)",
+      "name": "GET /api/vault/status (token, unset creds)",
       "method": "GET",
       "path": "/api/vault/status",
       "status": 200,
@@ -354,10 +399,19 @@
       }
     },
     {
-      "name": "GET /api/vault/item/synthetic-id (unset creds)",
+      "name": "GET /api/vault/item/synthetic-id",
       "method": "GET",
       "path": "/api/vault/item/synthetic-id",
-      "status": 200,
+      "status": 403,
+      "bodyShape": {
+        "error": "string"
+      }
+    },
+    {
+      "name": "POST /api/email/send (unauth)",
+      "method": "POST",
+      "path": "/api/email/send",
+      "status": 403,
       "bodyShape": {
         "error": "string"
       }
@@ -388,63 +442,78 @@
       "name": "GET /api/contacts/search?q=test",
       "method": "GET",
       "path": "/api/contacts/search?q=test",
-      "status": 200,
+      "status": 403,
       "bodyShape": {
-        "count": "number",
-        "results": {
-          "array": 0,
-          "of": null
-        }
+        "error": "string"
       }
     },
     {
       "name": "static /server.js",
       "method": "GET",
       "path": "/server.js",
-      "status": 200,
-      "bodyShape": "string"
+      "status": 404,
+      "bodyShape": {
+        "error": "string"
+      }
     },
     {
       "name": "static /.env",
       "method": "GET",
       "path": "/.env",
-      "status": 200,
-      "bodyShape": "string"
+      "status": 404,
+      "bodyShape": {
+        "error": "string"
+      }
     },
     {
       "name": "static /package.json",
       "method": "GET",
       "path": "/package.json",
-      "status": 200,
+      "status": 404,
       "bodyShape": {
-        "author": "string",
-        "dependencies": {
-          "dotenv": "string",
-          "express": "string",
-          "ssh2": "string"
-        },
-        "description": "string",
-        "keywords": {
-          "array": 0,
-          "of": null
-        },
-        "license": "string",
-        "main": "string",
-        "name": "string",
-        "scripts": {
-          "start": "string",
-          "test": "string"
-        },
-        "type": "string",
-        "version": "string"
+        "error": "string"
+      }
+    },
+    {
+      "name": "static traversal /assets/../server.js",
+      "method": "GET",
+      "path": "/assets/../server.js",
+      "status": 404,
+      "bodyShape": {
+        "error": "string"
+      }
+    },
+    {
+      "name": "static / (index)",
+      "method": "GET",
+      "path": "/",
+      "status": 200,
+      "bodyShape": "string"
+    },
+    {
+      "name": "static /assets/characters/char_0.png",
+      "method": "GET",
+      "path": "/assets/characters/char_0.png",
+      "status": 200,
+      "bodyShape": "string"
+    },
+    {
+      "name": "unknown page /nope",
+      "method": "GET",
+      "path": "/nope",
+      "status": 404,
+      "bodyShape": {
+        "error": "string"
       }
     },
     {
       "name": "unknown /api/nope",
       "method": "GET",
       "path": "/api/nope",
-      "status": 200,
-      "bodyShape": "string"
+      "status": 404,
+      "bodyShape": {
+        "error": "string"
+      }
     }
   ]
 }

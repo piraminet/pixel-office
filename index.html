@@ -84,7 +84,9 @@
                 offline: 'offline',
                 session: 'session', sessions: 'sessions',
                 channels: 'channels',
-                model: 'model', models: 'models'
+                model: 'model', models: 'models',
+                ownerLogin: 'Owner login',
+                loginNeeded: 'Owner login required — use the 🔒 lock above.'
             },
             es: {
                 aiDirector: 'Director IA', log: 'Registro', dashboard: 'Panel', email: 'Correo', contacts: 'Contactos',
@@ -111,7 +113,9 @@
                 offline: 'sin conexión',
                 session: 'sesión', sessions: 'sesiones',
                 channels: 'canales',
-                model: 'modelo', models: 'modelos'
+                model: 'modelo', models: 'modelos',
+                ownerLogin: 'Acceso propietario',
+                loginNeeded: 'Se requiere acceso de propietario — usa el candado 🔒 arriba.'
             }
         };
         let LANG = localStorage.getItem('pixel_lang') ||
@@ -147,6 +151,7 @@
             <div><span data-i18n="time">Time:</span> <span id="timer">0</span>s</div>
             <div id="runtimeChips" style="display:flex;flex-direction:column;gap:2px;margin-top:4px;font-size:11px;"></div>
             <div id="langToggle" style="margin-top:6px;font-size:11px;color:#9ca3af;cursor:pointer;pointer-events:auto;" onclick="setLang(LANG==='en'?'es':'en')" title="Language / Idioma">🌐 <span id="langLabel">EN</span></div>
+            <div id="ownerLoginBtn" style="margin-top:2px;font-size:11px;color:#9ca3af;cursor:pointer;pointer-events:auto;" onclick="ownerLogin()" title="Owner login (AI Director + briefings)">🔒 <span data-i18n="ownerLogin">Owner login</span></div>
         </div>
     </div>
 
@@ -1412,6 +1417,7 @@
             
             try {
                 const res = await fetch('/api/briefing/ai');
+                if (res.status === 401) throw new Error(t('loginNeeded'));
                 if (!res.ok) throw new Error('Briefing API error: ' + res.status);
                 const data = await res.json();
                 
@@ -1577,14 +1583,16 @@ Write NOTHING MORE than raw JSON, without code block markdown.`;
             fetch('/api/ai/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: command, systemPrompt: systemPrompt })
+                body: JSON.stringify({ prompt: command })
             })
             .then(res => {
+                if (res.status === 401) throw new Error(t('loginNeeded'));
                 if(!res.ok) throw new Error('API Error');
                 return res.json();
             })
             .then(data => {
                 const responseText = data.response || '';
+                if (typeof responseText !== 'string') throw new Error(t('ollamaConnError'));
                 let actions = [];
                 try {
                     actions = JSON.parse(responseText.trim());
@@ -2208,6 +2216,22 @@ Write NOTHING MORE than raw JSON, without code block markdown.`;
         loadEmailAccounts();
         pollUnread();
         setInterval(pollUnread, 60000);
+
+        // Owner login for authed AI features (G2): POST /api/auth/login sets an HttpOnly
+        // session cookie; AI Director chat + briefings then work in this kiosk view.
+        async function ownerLogin() {
+            const pw = (typeof prompt === 'function') ? prompt('Owner password:') : null;
+            if (!pw) return;
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: pw })
+                });
+                if (res.ok) { addChatMessage('System', 'Owner session established. AI Director unlocked.', 'ai'); }
+                else { addChatMessage('System', 'Login failed (' + res.status + ').', 'ai'); }
+            } catch (e) { addChatMessage('System', 'Login error: ' + e.message, 'ai'); }
+        }
 
         // === Agent runtime presence chips (Hermes + OpenClaw) ===
         async function pollRuntimePresence() {
