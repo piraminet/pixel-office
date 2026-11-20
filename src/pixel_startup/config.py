@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     # OpenClaw gateway (G7) — no secret defaults
     openclaw_gateway_url: str | None = None
     openclaw_gateway_token: str | None = None
+    # Hermes home (G8) — filesystem interface, no secrets
+    hermes_home: str | None = None
 
     @property
     def is_session_secret_set(self) -> bool:

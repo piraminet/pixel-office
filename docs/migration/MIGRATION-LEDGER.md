@@ -159,6 +159,23 @@ Statuses recorded as: PASS / FAIL / BLOCKED / SKIP / NOT RUN per workflow MVP-01
 
 ## Gates G3-G20 — registered next
 
+### G8 — Hermes adapter (executed 2026-11-20; LIVE-qualified this host)
+
+**Objective:** independent Hermes adapter via its own supported interface — zero coupling to OpenClaw (mandate §G8).
+
+**Files:** `src/pixel_startup/harnesses/{__init__,hermes}.py`, `tests/test_harnesses_hermes.py` (5 tests), `main.py` wiring (`_register_hermes`, evidence-gated promotion), `config.py` (`HERMES_HOME` field).
+
+**Interface:** the filesystem Hermes itself maintains — the same two source-of-truth files the deployed office's `integrations.js` reads (`$HERMES_HOME/runtime/active_sessions.json`, `$HERMES_HOME/gateway_state.json`) with identical semantics: pid-liveness filtering (`os.kill(pid, 0)`, PermissionError = alive foreign process), `gateway_state == "running"` + alive pid, connected-platform filter. No private imports; task ops (`submit/result/cancel/observe`) return `supported: false` explicitly (no documented programmatic task interface — Hermes drives the office REST API itself).
+**Live evidence (2026-11-20, this host):** probe → `online=True`, gateway `running` (pid alive), platforms `['mattermost']` (connected), 1 live session lease, profiles `['default']`. Same data the office presence chips already display.
+**Acceptance evidence:** `gateway.health`/`session.status` live shapes; dead session leases filtered (synthetic fixture: live pid + dead pid); missing/empty home → honest `online: false`; profile discovery lists `$HERMES_HOME/profiles/*` + `default`; **evidence-gated promotion** wired in the app lifespan: probe online → QUALIFIED, offline home → stays CANDIDATE, boot unaffected (both branches asserted). `hermes_home` provider: category `agent_harness`, priority 10, endpoint `$HERMES_HOME` path.
+**Hermes failure does not disable OpenClaw:** independent providers, independent probes (test: empty hermes home runs clean startup with openclaw provider untouched).
+**Test commands + results:** `uv run pytest` → 46 passed (5 G8); ruff clean; pyright 0 errors; `npm test` 44/44. Reproduction: `make python-test`.
+**Security implications:** reads only Hermes' own state files (no secrets read/exposed); read-only; no cross-harness routing (G8 prohibition honored).
+**Rollback:** remove harnesses/hermes.py + registration; hermes_home setting harmless if unset.
+**Limitations:** task submission into Hermes sessions remains unsupported pending a documented programmatic interface (G14's delegation path may need a capability executor or CLI surface — deferred); profile binding is discovery-only until G9.
+
+**Verdict: PASS** (component + this-host live file-interface qualification).
+
 ### G7 — OpenClaw adapter (executed 2026-11-20; component-qualified, live rows BLOCKED)
 
 **Objective:** adapter over the OpenClaw gateway using documented interfaces only; honest capability matrix; Charon maps to the real gateway once infrastructure exists. Eligibility: adapter+contract work independent of live infrastructure.

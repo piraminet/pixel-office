@@ -123,6 +123,32 @@ def _register_openclaw(container: Container, settings: Settings) -> None:
     container.registry.transition(adapter.provider_id, ProviderState.CANDIDATE)
 
 
+def _register_hermes(container: Container, settings: Settings) -> None:
+    """G8: Hermes filesystem adapter; promotion to QUALIFIED is evidence-gated.
+
+    The probe is the same file interface the deployed office reads; if it proves
+    offline here, the provider stays CANDIDATE — no qualification without evidence."""
+    from pixel_startup.harnesses.hermes import HermesHomeAdapter
+
+    adapter = HermesHomeAdapter(hermes_home=settings.hermes_home)
+    container.registry.register(
+        ProviderRegistration(
+            provider_id=adapter.provider_id,
+            category=ProviderCategory.AGENT_HARNESS,
+            implementation=adapter.implementation,
+            handler=adapter,
+            endpoint=str(adapter.home),
+            capabilities=["gateway.health", "session.status", "profile.discovery"],
+            priority=10,
+            detail="filesystem adapter ($HERMES_HOME sources of truth; G8)",
+        )
+    )
+    container.registry.transition(adapter.provider_id, ProviderState.CANDIDATE)
+    probe = adapter.probe()
+    if probe["online"]:
+        container.registry.transition(adapter.provider_id, ProviderState.QUALIFIED)
+
+
 def build_error(status_code: int, message: str, detail: str | None = None) -> JSONResponse:
     body: dict = {"error": {"code": status_code, "message": message}}
     if detail:
@@ -138,6 +164,7 @@ async def lifespan(app: FastAPI):
     _register_deployed_js_stack(container, settings)
     _register_python_persistence(container, settings)
     _register_openclaw(container, settings)
+    _register_hermes(container, settings)
     logger.info(
         "backend starting",
         extra={
