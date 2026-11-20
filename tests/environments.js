@@ -155,12 +155,12 @@ let child = null;
     r = await req('GET', '/api/environment');
     check('GET /api/environment → manifest of active env',
       r.status === 200 && r.parsed.id === 'continental' && r.parsed.manifest &&
-      r.parsed.manifest.grid.cols === 20 && r.parsed.manifest.grid.rows === 25);
+      r.parsed.manifest.grid.cols === 18 && r.parsed.manifest.grid.rows === 22);
     check('continental manifest carries 7 rooms + 16 workstations + placement',
       r.parsed.manifest.rooms.length === 7 &&
       r.parsed.manifest.workstations.length === 16 &&
       r.parsed.manifest.placement.reception === 'reception' &&
-      r.parsed.manifest.spawn[1] === 10);
+      r.parsed.manifest.spawn[1] === 20);
 
     r = await req('GET', '/api/environment/continental/manifest');
     check('GET manifest by id → 200', r.status === 200 && r.parsed.manifest.id === 'continental');

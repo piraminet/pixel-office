@@ -19,7 +19,16 @@ const TILES_WALKABLE = [0, 2, 3]; // chars may occupy these
 const FACES = ['up', 'down', 'left', 'right'];
 const INTERACTION_ACTIONS = ['idle', 'working', 'sitting', 'drinking', 'reading', 'phone'];
 const SLOT_KEYS = ['reception', 'workstations', 'archives'];
-const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp'];
+const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
+const FURNITURE_H = {
+  desk: 48, console: 42, counter: 52, bar: 52, crate: 38,
+  barrel: 32, planter: 32, lantern: 42, helmsman: 58,
+  perch: 42, rope: 26, rudder: 60, sign: 56, partition: 96,
+};
+const TALL_KINDS = ['wall', 'shelf', 'elevator', 'medallion', 'arch'];
+const FURNITURE_KINDS = [
+  ...Object.keys(FURNITURE_H), ...TALL_KINDS, 'plant', 'tree',
+];
 
 const slugOk = (s) => typeof s === 'string' && /^[a-z][a-z0-9-]{1,39}$/.test(s);
 
@@ -175,6 +184,61 @@ function validateManifest(manifest, opts) {
     fail('assets.background: must live under the pack directory');
   }
 
+  // presentation (optional; "top-down" when omitted)
+  if (m.presentation !== undefined) {
+    const p = m.presentation;
+    if (!p || typeof p !== 'object' || Array.isArray(p)) {
+      fail('presentation: must be an object');
+    } else {
+      if (p.projection !== undefined && !['top-down', 'isometric'].includes(p.projection)) {
+        fail("presentation.projection: must be 'top-down' or 'isometric'");
+      }
+      if (p.projection === 'isometric') {
+        for (const [k, lo, hi] of [['tileW', 8, 128], ['tileH', 2, 128], ['wallHeight', 4, 512]]) {
+          const v = p[k];
+          if (v !== undefined && (!Number.isInteger(v) || v < lo || v > hi)) {
+            fail(`presentation.${k}: integer ${lo}..${hi} required`);
+          }
+        }
+        if (p.origin !== undefined) {
+          const o = p.origin;
+          if (!Array.isArray(o) || o.length !== 2 ||
+              o.some((v) => !Number.isInteger(v) || v < -2048 || v > 4096)) {
+            fail('presentation.origin: [x,y] integers required');
+          }
+        }
+      }
+    }
+  }
+
+  // furniture (optional; solid props rendered by env backgrounds)
+  if (m.furniture !== undefined) {
+    if (!Array.isArray(m.furniture) || m.furniture.length > 64) {
+      fail('furniture: at most 64 entries');
+    } else {
+      const seen = new Set();
+      for (const f of m.furniture) {
+        if (!f || typeof f !== 'object' || !FURNITURE_KINDS.includes(f.kind)) {
+          fail(`furniture: kind must be one of ${FURNITURE_KINDS.join(',')}`);
+          continue;
+        }
+        if (!Array.isArray(f.tiles) || f.tiles.length < 1) {
+          fail(`furniture ${f.kind}: tiles array required`);
+          continue;
+        }
+        for (const t of f.tiles) {
+          const key = `${t.x},${t.y}`;
+          if (!inBounds([t.x, t.y])) { fail(`furniture ${f.kind}: tile out of bounds`); break; }
+          if (seen.has(key)) { fail(`furniture: duplicate tile ${key}`); break; }
+          seen.add(key);
+          if (at(t.x, t.y) !== 1) {
+            fail(`furniture ${f.kind}: tile ${key} must be solid (1)`);
+          }
+        }
+      }
+    }
+  }
+
   if (opts && opts.id) {
     // Enforce directory↔id consistency when loading from disk. Structural
     // validation (tests use synthetic ids) skips this.
@@ -186,6 +250,21 @@ function validateManifest(manifest, opts) {
 
 function manifestPath(environmentsRoot, envId) {
   return path.join(environmentsRoot, envId, 'manifest.json');
+}
+
+/** Normalized presentation block (projection, tile size, screen origin). */
+function presentationOf(manifest) {
+  const p = (manifest && manifest.presentation) || {};
+  if (p.projection === 'isometric') {
+    return {
+      projection: 'isometric',
+      tileW: Number.isInteger(p.tileW) ? p.tileW : 32,
+      tileH: Number.isInteger(p.tileH) ? p.tileH : 16,
+      origin: Array.isArray(p.origin) ? p.origin : [0, 0],
+      wallHeight: Number.isInteger(p.wallHeight) ? p.wallHeight : 132,
+    };
+  }
+  return { projection: 'top-down', tileW: 32, tileH: 32, origin: [0, 0], wallHeight: 0 };
 }
 
 function readManifest(environmentsRoot, envId) {
@@ -252,9 +331,11 @@ module.exports = {
   FACES,
   INTERACTION_ACTIONS,
   SLOT_KEYS,
+  FURNITURE_KINDS,
   validateManifest,
   readManifest,
   listPacks,
   manifestPath,
   walkableAt,
+  presentationOf,
 };
