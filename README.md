@@ -145,7 +145,7 @@ All scripts read `.env`, respect `PIXEL_DATA_DIR` and append to `pixel_actions.j
 - `data/` → live state (logs, commands, rooms, speech bubbles); auto-created on first run.
 - `assets/`:
   - `characters/` → MetroCity Free Topdown Character Pack by [JIK-a-4](https://jik-a-4.itch.io/metrocity-free-topdown-character-pack) (credit/details below).
-  - `oficina-placeholder.png` → built-in placeholder grid. If you purchase Donarg's Office Interior Tileset drop your PNG as `assets/oficina.png` (gitignored) and the app will pick it up automatically in the viewer + dashboard.
+  - `oficina-placeholder.png` → built-in pixel-art office (drawn from the default collision map; regenerable via `tools/generate-assets.py`). If you purchase Donarg's Office Interior Tileset drop your PNG as `assets/oficina.png` (gitignored) and the app will pick it up automatically.
 - `docs/media/` → screenshots used here; keep 1920px width when updating marketing shots.
 
 ## 🎨 Credits & external assets

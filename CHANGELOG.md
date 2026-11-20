@@ -8,6 +8,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 ### Changed
 - **Project reorientation (G−1):** platform identity moves from Pixel Office to **Pixel Startup** — repository/package `pixel-startup`, future Python package `pixel_startup`, CLI `pixel-startup`. The visual environment keeps the **Pixel Office** name; character identities, sprites, data file formats (`pixel_actions.jsonl`, `pixel-config.json`, …), API routes, the `pixel_session` cookie and the Vaultwarden device identifier are unchanged for backward compatibility. GitHub repository renamed to `bageera/pixel-startup` (2026-11-20, owner-authorized; GitHub redirects all old-name URLs).
 
+### Fixed
+- **`dashboard.html` was inert** (corrupt token spellings shipped in 14fb96e): 18 `onclickk` → `onclick` handlers (Export/Import/Save/Logout/tabs/minimap/brushes), 27 `transiten` → `transition`, 5 `positen` → `position` CSS, `.clickk()`/`clickkX/Y`/`handleMinimapClickk` fixed, and the `rolee` → `role` data-field corruption restored (role inputs round-trip correctly now).
+- **`char_2.png` (Charon) was a 631-byte stub** since 14fb96e; the intact 5,221-byte sheet was recovered from git history (075e1f1) and kept as `char_2_original.png`.
+
+### Added
+- **Custom Charon sprite**: hooded figure with cyan glow accents — deterministic palette swap of the restored sheet (`tools/generate-assets.py`), preserving the 7x3/16x32 frame geometry the canvas slices.
+- **Real pixel-art office placeholder** replacing the blank-grid background: 640x800 (true canvas size — the old 960x720 asset overfilled and clipped), drawn from the default collision map (brick walls, desks/shelves/counter with cyan LED strip, doors, chairs, plants, wall lamps, room tints aligned to Reception/Workstations/Archives anchors). Regenerate with `tools/generate-assets.py` after editing the layout.
+
 ### Added
 - **First-class agent runtimes**: `GET /api/presence` with Hermes Agent (session/gateway state under `~/.hermes`) and OpenClaw (gateway HTTP probe) adapters in `integrations.js`; live status chips in the office overlay.
 - Bilingual UI (English/Spanish) with a persisted language toggle (`i18n` block in `index.html`).
