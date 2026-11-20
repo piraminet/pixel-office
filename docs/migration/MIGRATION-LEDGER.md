@@ -159,6 +159,26 @@ Statuses recorded as: PASS / FAIL / BLOCKED / SKIP / NOT RUN per workflow MVP-01
 
 ## Gates G3-G20 — registered next
 
+### G7 — OpenClaw adapter (executed 2026-11-20; component-qualified, live rows BLOCKED)
+
+**Objective:** adapter over the OpenClaw gateway using documented interfaces only; honest capability matrix; Charon maps to the real gateway once infrastructure exists. Eligibility: adapter+contract work independent of live infrastructure.
+
+**Files:** `src/pixel_startup/harnesses/{__init__,openclaw}.py`, `tests/test_harnesses_openclaw.py` (6 tests), `main.py` wiring (`_register_openclaw`), `config.py` (`OPENCLAW_GATEWAY_URL` / `OPENCLAW_GATEWAY_TOKEN` — no secret defaults).
+
+**Interface discipline (the load-bearing decision):** the adapter uses exactly ONE documented surface — `GET {gateway}/v1/models` — the same probe `integrations.js` already performs in production. `session.status`, `task.submit`, `task.result`, `task.cancel`, `activity.observe`, `native_agent.discover` return `{"supported": false, "reason": "no documented gateway interface for this operation"}` with ZERO wire traffic (asserted in test: mock counter stays 0). No endpoints or event schemas invented, per mandate.
+
+**Acceptance evidence (component qualification):**
+- `gateway.health`: online → `/{online, auth: ok|rejected, models[]}`; 401 → `auth: rejected` with `online: true` (gateway alive, auth bad — mirrors integrations.js semantics); connect failure → `online: false` + error, never a fabricated success (test: offline adapter yields explicit unavailability; discovery on offline gateway returns "unavailable: gateway offline").
+- Registered via G5 machinery: `openclaw_gateway` (category `agent_harness`, implementation `python`, endpoint from `OPENCLAW_GATEWAY_URL`, priority 10) — state stays CANDIDATE (`register()` cannot promote; qualification withheld because live rows are BLOCKED); `select(agent_harness)` honestly raises "no active provider" (no active harness exists yet).
+- Token handling: bearer added only when configured; value never logged.
+- Tests: 41 passed total (6 G7: health online + models, auth-rejected honesty, offline honesty, unsupported-operations matrix with zero wire traffic, unknown-op explicit, lifespan registration state). `ruff check`/`format --check` clean; pyright 0 errors; `npm test` 44/44.
+
+**Reproduction:** `make python-test`; live probe attempted 2026-11-20: `curl http://127.0.0.1:18789/v1/models` → connection error (exit 000); `.env` has `OPENCLAW_*` commented out (no gateway install/address on this host).
+**BLOCKED rows:** agent discovery against real gateway, session status, task submission/result/observation/cancellation against Charon's runtime, Charon identity resolution — all pending an installed/reachable OpenClaw gateway; adapter surfaces already return explicit `supported: false` for the undocumented ones.
+**Security implications:** token only via env, no logs; unsupported operations fail closed; no authorization bypass possible through the adapter (no fallback).
+**Rollback:** remove harnesses package + registration; nothing on the JS stack or live infra was touched (probe was read-only curl).
+**When unblocked:** owner provisions gateway URL/token → re-run live probe → qualification rows → Charon identity resolution in G9.
+
 ### G3 — Language-neutral component contracts (criteria registered 2026-11-20, NOT RUN)
 
 Eligibility: independent (no live infrastructure required). Order: before G4 module shapes.
@@ -262,6 +282,8 @@ Eligibility: independent of live integrations; depends on nothing else. Structur
 **Limitations:** no foreign-key enforcement yet on approvals→tasks beyond FK pragmas (SQLite enforces with foreign_keys=ON — active); provider_records table exists but G5 registry state is not yet auto-persisted to it (write path lands with G9 employee sync); single-writer assumption at MVP scale.
 
 **Verdict: PASS.** Component qualification only: store migrates, is recoverable and non-destructive; not yet the active operational store (JS remains authoritative — G20).
+
+**Addendum 2026-11-20 (backup-archive candidate, owner-directed probe):** evaluated `mdrc` (bageera/sqlite-mdr, `mdr/research` @ eb7334170) as the backup/restoration archive layer. Verified live against a real G6 store (WAL mode, connection open, 200 tasks + employees): `mdrc pack --backup` captured a consistent snapshot via the same backup API G6 uses; verify OK; unpack restored `PRAGMA integrity_check` = ok with all rows; logical dump identical to a fresh backup-API snapshot; 118,784 → 4,721 B (~96% smaller; stored/raw fallback arm guarantees no expansion); tamper protection by construction (crc32 per segment + footer sha256 — repo gates 5/5, 9/9 rejections). **Engine verdict: sqlite-mdr is NOT an engine change** — it is byte-level archive tooling over stock SQLite 3.55.0; its MDR containers are never read by the engine (ADR-001), so the operational store stays plain SQLite in both stacks. **Adopted decision:** wire mdrc as the optional backup-compression/tamper layer at G19 (deployment packaging owns backup guidance), with plain backup-API `.sqlite` copies as the always-working fallback; G6 itself is unchanged (verified: raw main file of a live WAL db is not the byte-exactness target — snapshot ↔ restore integrity/logical equivalence is).
 
 ### G5-G20 dependencies and known blockers (for scheduling)
 

@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     pixel_api_token: str | None = None
     dashboard_password: str | None = None
     pixel_allow_no_password: bool = False
+    # OpenClaw gateway (G7) — no secret defaults
+    openclaw_gateway_url: str | None = None
+    openclaw_gateway_token: str | None = None
 
     @property
     def is_session_secret_set(self) -> bool:

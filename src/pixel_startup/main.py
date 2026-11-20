@@ -100,6 +100,29 @@ def _register_python_persistence(container: Container, settings: Settings) -> No
     container.registry.transition("pixel_startup_sqlite", ProviderState.QUALIFIED)
 
 
+def _register_openclaw(container: Container, settings: Settings) -> None:
+    """G7: OpenClaw gateway adapter joins as CANDIDATE (live rows BLOCKED on host)."""
+    from pixel_startup.harnesses.openclaw import OpenClawGatewayAdapter
+
+    adapter = OpenClawGatewayAdapter(
+        gateway_url=settings.openclaw_gateway_url,
+        token=settings.openclaw_gateway_token,
+    )
+    container.registry.register(
+        ProviderRegistration(
+            provider_id=adapter.provider_id,
+            category=ProviderCategory.AGENT_HARNESS,
+            implementation=adapter.implementation,
+            handler=adapter,
+            endpoint=adapter.gateway_url,
+            capabilities=["gateway.health", "agent.discovery"],
+            priority=10,
+            detail="candidate: contract-tested vs mock; live rows BLOCKED (no gateway on host)",
+        )
+    )
+    container.registry.transition(adapter.provider_id, ProviderState.CANDIDATE)
+
+
 def build_error(status_code: int, message: str, detail: str | None = None) -> JSONResponse:
     body: dict = {"error": {"code": status_code, "message": message}}
     if detail:
@@ -114,6 +137,7 @@ async def lifespan(app: FastAPI):
     setup_logging()
     _register_deployed_js_stack(container, settings)
     _register_python_persistence(container, settings)
+    _register_openclaw(container, settings)
     logger.info(
         "backend starting",
         extra={
