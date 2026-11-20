@@ -25,6 +25,7 @@ from pixel_startup.persistence.store import (
     EmployeeStore,
     OfficePersistenceProvider,
     TaskStore,
+    align_employee_roster,
 )
 from pixel_startup.providers.registry import (
     ProviderCategory,
@@ -84,6 +85,28 @@ def _register_python_persistence(container: Container, settings: Settings) -> No
     container.providers["tasks"] = TaskStore(db)
     container.providers["approvals"] = ApprovalStore(db)
     container.providers["audit"] = AuditStore(db)
+    # G9: align the visual roster into the registry at boot — visual identity sync
+    # only (bindings/lifecycle are never clobbered); Charon's OpenClaw intent is
+    # recorded as a PENDING binding until a native agent id + instance proof exists.
+    agents_path = os.path.join(settings.pixel_data_dir, "agents.json")
+    if os.path.isfile(agents_path):
+        report = align_employee_roster(
+            db,
+            agents_path,
+            harness_intents={"employee.charon": "openclaw"},
+        )
+        AuditStore(db).append(
+            {
+                "event_id": f"audit.roster-align.{report['source_sha256'][:12]}",
+                "actor": "system",
+                "action": "office.roster.align",
+                "outcome": "allow",
+                "detail": {
+                    "employees": report["employees_upserted"],
+                    "pending_bindings": len(report["pending_bindings"]),
+                },
+            }
+        )
     container.registry.register(
         ProviderRegistration(
             provider_id="pixel_startup_sqlite",

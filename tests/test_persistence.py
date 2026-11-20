@@ -63,12 +63,13 @@ def _db(tmp_path):
 
 def test_migration_version_pin_and_idempotence(tmp_path) -> None:
     db = _db(tmp_path)
+    assert db.migrate() == 2
     top = db.conn.execute("SELECT MAX(version) AS v FROM schema_migrations").fetchone()
-    assert top["v"] == 1
+    assert top is not None and top["v"] == 2
     before = db.conn.execute("SELECT COUNT(*) AS n FROM schema_migrations").fetchone()["n"]
     db.migrate()  # repeat run: no-op
     after = db.conn.execute("SELECT COUNT(*) AS n FROM schema_migrations").fetchone()["n"]
-    assert before == after == 1
+    assert before == after == 2
     db.close()
 
 

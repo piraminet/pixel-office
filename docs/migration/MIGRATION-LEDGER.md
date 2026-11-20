@@ -159,6 +159,31 @@ Statuses recorded as: PASS / FAIL / BLOCKED / SKIP / NOT RUN per workflow MVP-01
 
 ## Gates G3-G20 — registered next
 
+### G9 — Employee and character alignment (executed 2026-11-20)
+
+**Objective:** separate visual characters from runtime identities; mandatory binding proof; lifecycle discipline; impersonation refusal; decorative vs operational distinction; no false availability from probe output (mandate G9, incl. all acceptance bullets).
+
+**Files:** `persistence/db.py` (migration 2 + `EMPLOYEE_LIFECYCLE_TRANSITIONS`), `persistence/store.py` (lifecycle CAS, `bind`/`verify_binding`, non-destructive visual sync, `align_employee_roster`), `main.py` (boot-time alignment + audit), `tests/test_alignment.py` (5 tests).
+
+**Schema v2:** `employees.kind` ('operational'|'decorative'); partial UNIQUE index `(harness, native_harness_id) WHERE harness != 'none' AND native != ''` — the impersonation guard at the storage layer; `runtime_bindings.provenance`. v1 databases upgrade in place on next `migrate()` (idempotent ALTERs behind version pin, asserted for v2).
+
+**Lifecycle machine (mandate states incl. on_demand):** discovered→unassigned→registered→available→working/waiting/blocked/offline; on_demand branch; retired terminal. CAS-guarded like tasks (UPDATE ... WHERE lifecycle = expected); illegal moves and stale views raise `StorageError`. Employee lifecycle is deliberately NOT derived from harness probe results — session activity is external fact, registry lifecycle is governance (test: observed offline probe left lifecycle unchanged and passed through verbatim).
+
+**Binding proof chain (acceptance: no impersonation; instance + native id mandatory):** `bind()` requires harness ∈ {openclaw, hermes} + non-empty native_agent_id + harness_instance_id; unique-index refusal surfaces as `StorageError("impersonation refusal: …")` with NO row left behind (asserted); `verified_binding` is granted ONLY by `verify_binding()` against an existing active runtime_bindings row owned by that employee; foreign binding refused.
+
+**Visual sync root-cause fix (G6 latent flaw):** `migrate_office_json` was `INSERT OR REPLACE` — every re-run would have clobbered real harness bindings on employees. Now `ON CONFLICT(employee_id) DO UPDATE` touching ONLY display_name/sprite_id/updated_at; test proves a bound employee survives a re-run and a second boot.
+
+**Alignment (`align_employee_roster`) + boot wiring:** runs in the Python persistence registration whenever `data/agents.json` exists: visual identity sync (never binding clobber), `kind` classification, harness INTENTs (Charon→openclaw recorded at boot but never auto-bound — pending_bindings row states "awaiting native agent id + instance proof"), observed probe results passed through verbatim as separate report data. Alignment event audited once per roster sha (idempotent: two boots → one event, asserted); visual source file untouched; agents.json mutation by the JS office is irrelevant to the registry (visual layer owns positions).
+
+**Acceptance evidence:** sprites functional (JS office/visual layer untouched — only registry reads the roster json); identities survive restarts (boot-loop test); impersonation refused at the storage layer; offline/unknown never displayed as available (lifecycle/probe separation test); decorative characters distinguishable (`kind` in registry + report).
+
+**Test commands + results:** `uv run pytest` → 51 passed (5 G9; G6 schema-pin test updated to v2); ruff clean; pyright 0 errors; `npm test` 44/44; `make build` image green. Reproduction: `make python-test`.
+**Security implications:** bindings and verified identity are now server-side facts (G10's trust boundary can resolve them); no permissions auto-granted on discovery (mandate); alignment writes audited.
+**Rollback:** schema v2 additions are additive; dropping the index/columns returns to v1 shape; boot alignment can be disabled by removing the agents.json path check.
+**Limitations:** Charon's OpenClaw binding remains PENDING (gateway BLOCKED per G7 — binding completes when a live native id + instance proof exist); registry→office display wiring of lifecycle/verified status is G16; provider_records write path (ledger G6 note) deferred to G10-era employee sync.
+
+**Verdict: PASS** (component qualification; live harness bindings pending G7 gateway).
+
 ### G8 — Hermes adapter (executed 2026-11-20; LIVE-qualified this host)
 
 **Objective:** independent Hermes adapter via its own supported interface — zero coupling to OpenClaw (mandate §G8).

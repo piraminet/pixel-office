@@ -55,8 +55,8 @@ MIGRATIONS: dict[int, list[str]] = {
             payload TEXT,
             updated_at TEXT NOT NULL
         )""",
-        "CREATE INDEX IF NOT EXISTS idx_tasks_correlation ON tasks(correlation_id)",
         "CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status)",
+        "CREATE INDEX IF NOT EXISTS idx_tasks_correlation ON tasks(correlation_id)",
         """CREATE TABLE IF NOT EXISTS approvals (
             request_id TEXT PRIMARY KEY,
             task_id TEXT NOT NULL REFERENCES tasks(task_id),
@@ -87,6 +87,29 @@ MIGRATIONS: dict[int, list[str]] = {
             updated_at TEXT NOT NULL
         )""",
     ],
+    2: [
+        # G9: decorative vs operational classification
+        "ALTER TABLE employees ADD COLUMN kind TEXT NOT NULL DEFAULT 'operational'",
+        # G9: impersonation guard — one native harness identity may bind to one employee
+        """CREATE UNIQUE INDEX IF NOT EXISTS idx_employees_unique_native
+           ON employees (harness, native_harness_id)
+           WHERE harness != 'none' AND native_harness_id != ''""",
+        # G9: binding provenance (which surface/harness evidence produced the binding)
+        "ALTER TABLE runtime_bindings ADD COLUMN provenance TEXT NOT NULL DEFAULT ''",
+    ],
+}
+
+EMPLOYEE_LIFECYCLE_TRANSITIONS: dict[str, set[str]] = {
+    "discovered": {"unassigned", "retired"},
+    "unassigned": {"registered", "retired"},
+    "registered": {"available", "retired"},
+    "available": {"working", "waiting", "blocked", "offline", "retired", "on_demand"},
+    "working": {"available", "waiting", "blocked", "offline"},
+    "waiting": {"available", "working", "blocked", "offline"},
+    "blocked": {"available", "working", "offline", "retired"},
+    "offline": {"available", "retired"},
+    "on_demand": {"available", "working", "waiting", "offline", "retired"},
+    "retired": set(),
 }
 
 TASK_TRANSITIONS: dict[str, set[str]] = {
