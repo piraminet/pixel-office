@@ -14,7 +14,7 @@
             image-rendering: pixelated;
         }
         .minimap-marker {
-            transiten: all 0.2s;
+            transition: all 0.2s;
         }
         
         .grid-container {
@@ -25,10 +25,10 @@
             background: #333;
             border: 2px solid #555;
             width: fit-content;
-            positen: relative;
+            position: relative;
         }
         .grid-bg-img {
-            positen: absolute;
+            position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             pointer-events: none;
             opacity: 0.4;
@@ -42,7 +42,7 @@
             height: 20px;
             background: rgba(0,0,0,0.4);
             cursor: crosshair;
-            transiten: opacity 0.1s;
+            transition: opacity 0.1s;
             z-index: 10;
         }
         .grid-cell:hover {
@@ -80,7 +80,7 @@
                     <input type="password" id="passwordInput" class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2 focus:outline-none focus:border-blue-500 text-white" placeholder="Enter password" autocomplete="current-password">
                     <p id="loginError" class="text-red-500 text-sm mt-2 hidden">Password incorrect.</p>
                 </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded transiten-colors shadow shadow-blue-500/30">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded transition-colors shadow shadow-blue-500/30">
                     Ingresar
                 </button>
             </form>
@@ -99,21 +99,21 @@
                 </h1>
                 
                 <div class="flex gap-4">
-                    <button onclickk="exportConfig()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg transiten-colors shadow shadow-blue-500/30 flex items-center gap-2">
+                    <button onclick="exportConfig()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow shadow-blue-500/30 flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                         Export
                     </button>
-                    <button onclickk="document.getElementById('importConfigInput').clickk()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded-lg transiten-colors shadow shadow-purple-500/30 flex items-center gap-2">
+                    <button onclick="document.getElementById('importConfigInput').click()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow shadow-purple-500/30 flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                         Import
                     </button>
                     <input type="file" id="importConfigInput" accept=".json" class="hidden" onchange="importConfig(event)">
                     
-                    <button onclickk="saveAllAndGoToApp()" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded-lg transiten-colors shadow shadow-green-500/30 flex items-center gap-2">
+                    <button onclick="saveAllAndGoToApp()" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow shadow-green-500/30 flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                         Save e Ir a la Oficina
                     </button>
-                    <button onclickk="logout()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2 px-4 rounded transiten-colors border border-slate-600">
+                    <button onclick="logout()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2 px-4 rounded transition-colors border border-slate-600">
                         Logout
                     </button>
                 </div>
@@ -123,11 +123,11 @@
         <!-- TABS -->
         <div class="bg-slate-800 shrink-0 border-b border-slate-700 z-10 px-4">
             <div class="max-w-7xl mx-auto flex gap-6 px-4">
-                <button onclickk="switchTab('chars')" id="tabBtnChars" class="py-3 px-2 text-sm font-bold tab-active flex items-center gap-2 transiten-colors">
+                <button onclick="switchTab('chars')" id="tabBtnChars" class="py-3 px-2 text-sm font-bold tab-active flex items-center gap-2 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     Characters y Ubicación
                 </button>
-                <button onclickk="switchTab('map')" id="tabBtnMap" class="py-3 px-2 text-sm font-bold tab-inactive flex items-center gap-2 transiten-colors">
+                <button onclick="switchTab('map')" id="tabBtnMap" class="py-3 px-2 text-sm font-bold tab-inactive flex items-center gap-2 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>
                     Collisions & Rooms (AI)
                 </button>
@@ -150,11 +150,11 @@
                     </div>
 
                     <div class="bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-700 sticky top-0">
-                        <h2 class="text-xl font-semibold mb-2 text-slate-200">Initial Positen Map</h2>
+                        <h2 class="text-xl font-semibold mb-2 text-slate-200">Initial Position Map</h2>
                         <p class="text-sm text-slate-400 mb-4" id="mapInstruction">Select a character from the list to place them.</p>
                         
                         <!-- Minimap container -->
-                        <div class="relative mx-auto border-2 border-slate-600 rounded overflow-hidden shadow-inner bg-slate-900" style="width: 320px; height: 400px; cursor: crosshair;" onclickk="handleMinimapClickk(event)" id="minimapWrap">
+                        <div class="relative mx-auto border-2 border-slate-600 rounded overflow-hidden shadow-inner bg-slate-900" style="width: 320px; height: 400px; cursor: crosshair;" onclick="handleMinimapClick(event)" id="minimapWrap">
                             <img id="officePreview" src="assets/oficina-placeholder.png" class="w-full h-full object-cover pixel-art opacity-60" draggable="false" alt="Office layout preview">
                             <div id="markersContainer" class="absolute inset-0 pointer-events-none"></div>
                         </div>
@@ -180,16 +180,16 @@
                         
                         <div class="text-xs font-bold text-slate-400 uppercase mr-2 tracking-wider">Terreno:</div>
                         
-                        <button onclickk="setMapBrush('terrain', 0)" id="brush-0" class="brush-btn px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded border border-slate-500 shadow-sm flex items-center gap-2 transiten-colors">
+                        <button onclick="setMapBrush('terrain', 0)" id="brush-0" class="brush-btn px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded border border-slate-500 shadow-sm flex items-center gap-2 transition-colors">
                             <div class="w-3 h-3 bg-gray-500 rounded-sm border border-gray-900"></div> Floor (Erase)
                         </button>
-                        <button onclickk="setMapBrush('terrain', 1)" id="brush-1" class="brush-btn px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded border border-slate-500 shadow-sm flex items-center gap-2 transiten-colors">
+                        <button onclick="setMapBrush('terrain', 1)" id="brush-1" class="brush-btn px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded border border-slate-500 shadow-sm flex items-center gap-2 transition-colors">
                             <div class="w-3 h-3 bg-red-500 rounded-sm opacity-80 border border-gray-900"></div> Wall (Muro)
                         </button>
-                        <button onclickk="setMapBrush('terrain', 2)" id="brush-2" class="brush-btn px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded border border-slate-500 shadow-sm flex items-center gap-2 transiten-colors">
+                        <button onclick="setMapBrush('terrain', 2)" id="brush-2" class="brush-btn px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded border border-slate-500 shadow-sm flex items-center gap-2 transition-colors">
                             <div class="w-3 h-3 bg-yellow-500 rounded-sm opacity-80 border border-gray-900"></div> Door
                         </button>
-                        <button onclickk="setMapBrush('terrain', 3)" id="brush-3" class="brush-btn px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded border border-slate-500 shadow-sm flex items-center gap-2 transiten-colors">
+                        <button onclick="setMapBrush('terrain', 3)" id="brush-3" class="brush-btn px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded border border-slate-500 shadow-sm flex items-center gap-2 transition-colors">
                             <div class="w-3 h-3 bg-green-500 rounded-sm opacity-80 border border-gray-900"></div> Chair (Destino)
                         </button>
                     </div>
@@ -212,7 +212,7 @@
                         </div>
                         
                         <div class="p-3 border-b border-slate-700 bg-slate-800">
-                            <button onclickk="setMapBrush('room')" id="brush-room" class="w-full brush-btn px-3 py-2 bg-purple-700 hover:bg-purple-600 text-white text-xs rounded border border-purple-500 shadow flex justify-center items-center gap-2 transiten-colors">
+                            <button onclick="setMapBrush('room')" id="brush-room" class="w-full brush-btn px-3 py-2 bg-purple-700 hover:bg-purple-600 text-white text-xs rounded border border-purple-500 shadow flex justify-center items-center gap-2 transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>
                                 Paint Rooms (IA)
                             </button>
@@ -224,7 +224,7 @@
                         </div>
 
                         <div class="p-3 border-t border-slate-700 bg-slate-900">
-                            <button onclickk="addNewRoom()" class="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs rounded border border-slate-500 border-dashed transiten-colors flex items-center justify-center gap-2">
+                            <button onclick="addNewRoom()" class="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs rounded border border-slate-500 border-dashed transition-colors flex items-center justify-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                                 New Habitación
                             </button>
@@ -345,15 +345,15 @@
             vMap.classList.add('hidden');
             
             // Reset all buttons
-            bChars.className = "py-3 px-2 text-sm font-bold tab-inactive flex items-center gap-2 transiten-colors";
-            bMap.className = "py-3 px-2 text-sm font-bold tab-inactive flex items-center gap-2 transiten-colors";
+            bChars.className = "py-3 px-2 text-sm font-bold tab-inactive flex items-center gap-2 transition-colors";
+            bMap.className = "py-3 px-2 text-sm font-bold tab-inactive flex items-center gap-2 transition-colors";
 
             if(t === 'chars') {
                 vChars.classList.remove('hidden');
-                bChars.className = "py-3 px-2 text-sm font-bold tab-active flex items-center gap-2 transiten-colors";
+                bChars.className = "py-3 px-2 text-sm font-bold tab-active flex items-center gap-2 transition-colors";
             } else if (t === 'map') {
                 vMap.classList.remove('hidden');
-                bMap.className = "py-3 px-2 text-sm font-bold tab-active flex items-center gap-2 transiten-colors";
+                bMap.className = "py-3 px-2 text-sm font-bold tab-active flex items-center gap-2 transition-colors";
                 renderGrid();
             }
         }
@@ -397,7 +397,7 @@
                         name: a.name,
                         x: a.x ? Math.floor(a.x / 32) : null,
                         y: a.y ? Math.floor(a.y / 32) : null,
-                        rolee: a.role || '',
+                        role: a.role || '',
                         room: a.room || '',
                         personality: 'Worker',
                         visible: a.active !== false
@@ -408,7 +408,7 @@
 
                 // Ensure 6 chars
                 while(charConfig.length < NUM_CHARS) {
-                    charConfig.push({ id: charConfig.length, name: `Character ${charConfig.length+1}`, x: null, y: null, rolee:'', room:'', personality:'Worker', visible:true });
+                    charConfig.push({ id: charConfig.length, name: `Character ${charConfig.length+1}`, x: null, y: null, role:'', room:'', personality:'Worker', visible:true });
                 }
 
                 // 2. Collision from server
@@ -445,7 +445,7 @@
                 const agentsConfig = charConfig.map(c => ({
                     id: c.id,
                     name: c.name,
-                    role: c.rolee,
+                    role: c.role,
                     room: c.room || '',
                     color: c.id,
                     x: c.x !== null ? c.x * 32 + 16 : 320,
@@ -484,7 +484,7 @@
 
         function generateDefaultChars() {
             const arr = [];
-            for(let i=0; i<NUM_CHARS; i++) arr.push({id:i, name:'Character '+(i+1), x:null, y:null, rolee:'', room:'', personality:'Worker', visible:true});
+            for(let i=0; i<NUM_CHARS; i++) arr.push({id:i, name:'Character '+(i+1), x:null, y:null, role:'', room:'', personality:'Worker', visible:true});
             return arr;
         }
 
@@ -516,7 +516,7 @@
             downloadAnchorNode.setAttribute("href",     dataStr);
             downloadAnchorNode.setAttribute("download", "pixel_office_config.json");
             document.body.appendChild(downloadAnchorNode); // required for firefox
-            downloadAnchorNode.clickk();
+            downloadAnchorNode.click();
             downloadAnchorNode.remove();
         }
 
@@ -573,10 +573,10 @@
             charConfig.forEach(char => {
                 const isSel = selectedCharId === char.id;
                 // Calculate background (mismo q miniatura en index)
-                const spriteStyle = `width: 32px; height: 64px; background-image: url('assets/characters/char_${char.id}.png'); background-positen: 0px 0px; background-size: 224px 192px;`;
+                const spriteStyle = `width: 32px; height: 64px; background-image: url('assets/characters/char_${char.id}.png'); background-position: 0px 0px; background-size: 224px 192px;`;
 
                 const el = document.createElement('div');
-                el.className = `flex flex-col gap-2 p-4 rounded-xl transiten-all border-2 ${isSel ? 'bg-blue-900/60 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'bg-slate-800/80 border-slate-700 hover:bg-slate-700'}`;
+                el.className = `flex flex-col gap-2 p-4 rounded-xl transition-all border-2 ${isSel ? 'bg-blue-900/60 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'bg-slate-800/80 border-slate-700 hover:bg-slate-700'}`;
 
                 // Populate rooms for select
                 let roomOptions = '<option value="">None</option>';
@@ -584,7 +584,7 @@
                     roomOptions += `<option value="${r.name}" ${char.room === r.name ? 'selected' : ''}>${r.name}</option>`;
                 });
 
-                let posText = char.x !== null ? `Coordinate: [${char.x}, ${char.y}]` : 'Random Positen';
+                let posText = char.x !== null ? `Coordinate: [${char.x}, ${char.y}]` : 'Random Position';
                 
                 el.innerHTML = `
                     <div class="flex items-center gap-4">
@@ -593,7 +593,7 @@
                         </div>
                         <div class="flex-1 min-w-0">
                             <label class="block text-xs text-slate-400 mb-1">Name</label>
-                            <input type="text" value="${char.name}" onchange="updateCharItem(${char.id}, 'name', this.value)" class="w-full bg-slate-900 border ${isSel ? 'border-blue-400' : 'border-slate-600'} rounded px-3 py-1.5 outline-none text-white text-sm focus:border-blue-400 transiten-colors">
+                            <input type="text" value="${char.name}" onchange="updateCharItem(${char.id}, 'name', this.value)" class="w-full bg-slate-900 border ${isSel ? 'border-blue-400' : 'border-slate-600'} rounded px-3 py-1.5 outline-none text-white text-sm focus:border-blue-400 transition-colors">
                             <div class="mt-1 text-[11px] ${char.x !== null ? 'text-green-400' : 'text-slate-400'} font-mono">${posText}</div>
                         </div>
                         <div class="flex flex-col items-center gap-2 shrink-0">
@@ -601,28 +601,28 @@
                                  <span class="text-[10px] text-slate-400 font-semibold uppercase">Visible</span>
                                  <label class="relative inline-flex items-center cursor-pointer">
                                      <input type="checkbox" class="sr-only peer" onchange="updateCharItem(${char.id}, 'visible', this.checked)" ${char.visible !== false ? 'checked' : ''}>
-                                     <div class="w-8 h-4 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transiten-all peer-checked:bg-blue-500"></div>
+                                     <div class="w-8 h-4 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-500"></div>
                                  </label>
                              </div>
-                             <button onclickk="selectCharForPlacement(${char.id})" class="${isSel ? 'bg-blue-600 text-white border border-blue-400 shadow-md' : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'} w-full text-xs font-bold py-1.5 px-3 rounded-lg transiten-colors flex items-center justify-center gap-1">
+                             <button onclick="selectCharForPlacement(${char.id})" class="${isSel ? 'bg-blue-600 text-white border border-blue-400 shadow-md' : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'} w-full text-xs font-bold py-1.5 px-3 rounded-lg transition-colors flex items-center justify-center gap-1">
                                  📍 <span>${isSel ? 'Placing...' : 'Place'}</span>
                              </button>
                         </div>
                     </div>
                     <div class="grid grid-cols-3 gap-2 mt-2">
                         <div>
-                            <label class="block text-[10px] text-slate-400 mb-1 uppercase">Rolee</label>
-                            <input type="text" placeholder="E.g: Developer" value="${char.rolee || ''}" onchange="updateCharItem(${char.id}, 'rolee', this.value)" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 outline-none text-white text-xs focus:border-blue-400 transiten-colors">
+                            <label class="block text-[10px] text-slate-400 mb-1 uppercase">Role</label>
+                            <input type="text" placeholder="E.g: Developer" value="${char.role || ''}" onchange="updateCharItem(${char.id}, 'role', this.value)" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 outline-none text-white text-xs focus:border-blue-400 transition-colors">
                         </div>
                         <div>
                             <label class="block text-[10px] text-slate-400 mb-1 uppercase">Default Room</label>
-                            <select onchange="updateCharItem(${char.id}, 'room', this.value)" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 outline-none text-white text-xs focus:border-blue-400 transiten-colors">
+                            <select onchange="updateCharItem(${char.id}, 'room', this.value)" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 outline-none text-white text-xs focus:border-blue-400 transition-colors">
                                 ${roomOptions}
                             </select>
                         </div>
                         <div>
                             <label class="block text-[10px] text-slate-400 mb-1 uppercase">Personality</label>
-                            <select onchange="updateCharItem(${char.id}, 'personality', this.value)" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 outline-none text-white text-xs focus:border-blue-400 transiten-colors">
+                            <select onchange="updateCharItem(${char.id}, 'personality', this.value)" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 outline-none text-white text-xs focus:border-blue-400 transition-colors">
                                 <option value="Worker" ${char.personality === 'Worker' ? 'selected' : ''}>Worker</option>
                                 <option value="Restless" ${char.personality === 'Restless' ? 'selected' : ''}>Restless (Walks)</option>
                                 <option value="Lazy" ${char.personality === 'Lazy' ? 'selected' : ''}>Lazy (Chatty)</option>
@@ -650,15 +650,15 @@
             renderMinimapMarkers();
         }
 
-        function handleMinimapClickk(e) {
+        function handleMinimapClick(e) {
             if (selectedCharId === null) return;
             const rect = document.getElementById('minimapWrap').getBoundingClientRect();
-            const clickkX = e.clientX - rect.left;
-            const clickkY = e.clientY - rect.top;
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
 
             // map scaling
-            const realX = clickkX / MINIMAP_SCALE;
-            const realY = clickkY / MINIMAP_SCALE;
+            const realX = clickX / MINIMAP_SCALE;
+            const realY = clickY / MINIMAP_SCALE;
             const tX = Math.floor(realX / TILE_SIZE);
             const tY = Math.floor(realY / TILE_SIZE);
 
@@ -688,7 +688,7 @@
                     mk.style.top = my + 'px';
                     
                     mk.innerHTML = `
-                         <div class="relative group" onclickk="selectCharForPlacement(${char.id}); event.stopPropagation()">
+                         <div class="relative group" onclick="selectCharForPlacement(${char.id}); event.stopPropagation()">
                             <div class="w-5 h-5 bg-blue-500 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[9px] font-bold text-white leading-none">
                                 ${char.id + 1}
                             </div>
@@ -855,9 +855,9 @@
             aiRooms.forEach(r => {
                 const isSel = (activeRoomId === r.id && currentBrushType === 'room');
                 const p = document.createElement('div');
-                p.className = `flex flex-col gap-2 p-3 mb-2 rounded border transiten-colors cursor-pointer ${isSel ? 'bg-slate-700 border-purple-400' : 'bg-slate-800 border-slate-600 hover:border-slate-400'}`;
+                p.className = `flex flex-col gap-2 p-3 mb-2 rounded border transition-colors cursor-pointer ${isSel ? 'bg-slate-700 border-purple-400' : 'bg-slate-800 border-slate-600 hover:border-slate-400'}`;
                 
-                p.onclickk = (e) => {
+                p.onclick = (e) => {
                     if(e.target.tagName!=='INPUT' && e.target.tagName!=='BUTTON' && !e.target.closest('button')) {
                         setMapBrush('room');
                         activeRoomId = r.id;
@@ -868,8 +868,8 @@
                 p.innerHTML = `
                     <div class="flex items-center gap-2">
                         <div class="w-4 h-4 rounded shadow-inner shrink-0" style="background-color: ${r.color}"></div>
-                        <input type="text" value="${r.name}" onchange="updateRoom(${r.id}, this.value)" class="flex-1 bg-slate-900 border ${isSel ? 'border-purple-400' : 'border-slate-700'} text-xs px-2 py-1 rounded text-white focus:outline-none" onclickk="(e)=>e.stopPropagation()">
-                        <button onclickk="removeRoom(${r.id})" class="text-slate-500 hover:text-red-400 p-1 bg-slate-900 rounded border border-slate-700 shrink-0">
+                        <input type="text" value="${r.name}" onchange="updateRoom(${r.id}, this.value)" class="flex-1 bg-slate-900 border ${isSel ? 'border-purple-400' : 'border-slate-700'} text-xs px-2 py-1 rounded text-white focus:outline-none" onclick="(e)=>e.stopPropagation()">
+                        <button onclick="removeRoom(${r.id})" class="text-slate-500 hover:text-red-400 p-1 bg-slate-900 rounded border border-slate-700 shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
                     </div>
