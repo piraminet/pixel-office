@@ -18,6 +18,14 @@ from fastapi.responses import JSONResponse
 from pixel_startup.api import health
 from pixel_startup.config import Settings, load_settings
 from pixel_startup.log import logger, setup_logging
+from pixel_startup.persistence.db import Database
+from pixel_startup.persistence.store import (
+    ApprovalStore,
+    AuditStore,
+    EmployeeStore,
+    OfficePersistenceProvider,
+    TaskStore,
+)
 from pixel_startup.providers.registry import (
     ProviderCategory,
     ProviderRegistration,
@@ -61,6 +69,37 @@ def _register_deployed_js_stack(container: Container, settings: Settings) -> Non
     container.registry.transition(reg.provider_id, ProviderState.ACTIVE)
 
 
+def _register_python_persistence(container: Container, settings: Settings) -> None:
+    """G6: open the operational store, migrate, and register as a QUALIFIED provider.
+
+    Deliberately NOT activated — the deployed JS stack stays the active
+    persistence provider until cutover (G20)."""
+    import os
+
+    db = Database(os.path.join(settings.pixel_data_dir, "pixel_startup.sqlite3"))
+    version = db.migrate()
+    handler = OfficePersistenceProvider(db)
+    container.providers["db"] = db
+    container.providers["employees"] = EmployeeStore(db)
+    container.providers["tasks"] = TaskStore(db)
+    container.providers["approvals"] = ApprovalStore(db)
+    container.providers["audit"] = AuditStore(db)
+    container.registry.register(
+        ProviderRegistration(
+            provider_id="pixel_startup_sqlite",
+            category=ProviderCategory.OPERATIONAL_PERSISTENCE,
+            implementation="python",
+            handler=handler,
+            endpoint=None,
+            capabilities=["persistence.health.counts", "employees.upsert", "tasks.lifecycle"],
+            priority=10,
+            detail=f"candidate ops store (schema v{version}); activation deferred to G20",
+        )
+    )
+    container.registry.transition("pixel_startup_sqlite", ProviderState.CANDIDATE)
+    container.registry.transition("pixel_startup_sqlite", ProviderState.QUALIFIED)
+
+
 def build_error(status_code: int, message: str, detail: str | None = None) -> JSONResponse:
     body: dict = {"error": {"code": status_code, "message": message}}
     if detail:
@@ -74,6 +113,7 @@ async def lifespan(app: FastAPI):
     container: Container = app.state.container
     setup_logging()
     _register_deployed_js_stack(container, settings)
+    _register_python_persistence(container, settings)
     logger.info(
         "backend starting",
         extra={

@@ -236,6 +236,33 @@ Eligibility: independent of live integrations; depends on nothing else. Structur
 
 **Verdict: PASS.** Component qualification only (registry has no live external integrations to qualify yet — those are G7/G11/G12/G13).
 
+### G6 — Operational persistence (executed 2026-11-20)
+
+**Objective:** versioned SQLite operational store (employee registry, runtime bindings, task lifecycle, approvals, audit references, provider configuration) with idempotent non-destructive JSON migration, atomic state changes, restart recovery, backup/restore.
+
+**Files:** `src/pixel_startup/persistence/{__init__,db,store}.py`, `tests/test_persistence.py` (10 tests), `main.py` wiring (lifespan opens + migrates the store; stores on the DI seam; `pixel_startup_sqlite` provider QUALIFIED, priority 10).
+
+**Schema (v1):** `schema_migrations(version, applied_at)`; `employees` (G3 AgentIdentity-aligned columns incl. asserted_id/verified_binding), `runtime_bindings` (FK employees), `tasks` (lifecycle CHECK-free; transition map guards), `approvals`, `audit_events`, `provider_records`; indexes on tasks(correlation_id), tasks(status). Scope discipline honored: no customer/financial/repo/vector/object data — only the mandate-allowed operational tables.
+
+**Acceptance evidence:**
+- Versioned migrations: v1 applied inside `BEGIN IMMEDIATE` transactions with rollback-on-error; `db.migrate()` replays safely (assert: repeated run adds no rows).
+- **Idempotent JSON migration:** `migrate_office_json` reads the live roster shape `data/agents.json` (fixture with 3 agents incl. inactive), upserts keyed by stable `employee_id` (`employee.<name>`), marks visual characters `harness='none'` (runtime binding is G7/G8). Re-run: same upsert count, row count stable (3→3) — no duplicates. Source file byte-identical after migration (rollback-safe; originals remain in place).
+- **Atomic transitions (CAS):** `TaskStore.transition` is `UPDATE ... WHERE task_id = ? AND status = <fresh-read>`; illegal moves rejected with `StorageError`; out-of-band writer simulation proves a competitor holding an outdated expected status is refused (rowcount 0) while a fresh view completes its legal move.
+- Idempotent task identifiers: double-create of the same task_id returns the original row (objective unchanged), table count stays 1.
+- **Restart recovery:** close → reopen → data intact (assert objective survives reopen).
+- **Backup/restore:** `Database.backup()` (SQLite backup API) → mutate → close → `restore_from` → post-backup writes gone (count back to 1). Note recorded for G19: restore requires releasing WAL connections first (close before copy).
+- Concurrency: WAL journal asserted; second connection observes committed writes across connections.
+- Provider coexistence: `pixel_startup_sqlite` registered through explicit promotion to QUALIFIED (priority 10, handler `health.counts` proven via `registry.invoke_provider`; unsupported op raises StorageError and is audited error) — JS `pixel_office_js` remains ACTIVE priority 100 (select still returns JS). Activation deferred to G20 as mandated.
+- Audit persistence available (`AuditStore.append/count`) for the G5 in-memory audit entries → ledger rows.
+
+**Test commands + results:** `uv run pytest` → 35 passed (10 G6); ruff check/format clean; pyright 0 errors; `npm test` 44/44; reproduction: `make python-test`.
+**Design decisions:** stdlib `sqlite3` only (no ORM — zero new deps); CAS transitions instead of lock tables (WAL + BEGIN IMMEDIATE sufficient at MVP scale); `updated_at` bumps on every transition for reconciliation; migration of roster keys employees by name-derived stable ids because JS agents.json has no durable employee id (documented — revisit when G7 native identities land).
+**Security implications:** store contains no credential values (C3 contracts alignment); file created with default umask under data/ (already gitignored); no network exposure.
+**Rollback implications:** delete the sqlite file + persistence package; original JSON untouched (non-destructive migration); JS stack authoritative throughout.
+**Limitations:** no foreign-key enforcement yet on approvals→tasks beyond FK pragmas (SQLite enforces with foreign_keys=ON — active); provider_records table exists but G5 registry state is not yet auto-persisted to it (write path lands with G9 employee sync); single-writer assumption at MVP scale.
+
+**Verdict: PASS.** Component qualification only: store migrates, is recoverable and non-destructive; not yet the active operational store (JS remains authoritative — G20).
+
 ### G5-G20 dependencies and known blockers (for scheduling)
 
 - G7 (OpenClaw) live qualification BLOCKED on this host: no OpenClaw install/gateway address; proceed adapter-vs-contract + mock, record BLOCKED for live rows.
