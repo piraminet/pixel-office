@@ -1,6 +1,6 @@
 {
   "boot": {
-    "startupMs": 312,
+    "startupMs": 314,
     "log": [
       "Using initial configuration",
       "Dashboard auth route ready",
@@ -269,7 +269,7 @@
           },
           "runtime": "string",
           "sessions": {
-            "array": 2,
+            "array": 1,
             "of": {
               "pid": "number",
               "session_id": "string",
