@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 const email = require('./email');
 const contacts = require('./contacts');
 const vault = require('./vault');
+const integrations = require('./integrations');
 
 const envPath = path.join(__dirname, '.env');
 if (fs.existsSync(envPath)) {
@@ -652,6 +653,17 @@ app.get('/api/messages', (req, res) => {
     }
   }
   res.json(messages);
+});
+
+// === Agent runtime presence (Hermes + OpenClaw) ===
+
+// Live roster of real agent runtimes; read-only, cached 5s in integrations.js
+app.get('/api/presence', async (req, res) => {
+  try {
+    res.json(await integrations.getPresence());
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // API to save collision map

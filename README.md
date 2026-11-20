@@ -46,8 +46,8 @@ services/pixel
 1. **Install dependencies**
    ```bash
    cd services/pixel
-   cp -n .env.example .env   # tweak PORT, PIXEL_DATA_DIR, DASHBOARD_PASSWORD
-   npm install
+   cp -n .env.example .env   # tweak PORT, PIXEL_DATA_DIR, DASHBOARD_PASSWORD, agent-runtime vars
+   npm install               # or: make install
    ```
 
 2. **Prime the runtime data** with the public samples:
@@ -90,6 +90,38 @@ services/pixel
 | `GET/POST /api/collision` | Reads or saves the collision map. |
 | `GET/POST /api/rooms` | Reads or saves room definitions. |
 
+## 🧩 First-class agent runtimes (Hermes + OpenClaw)
+
+The office is not just a mockup — it shows the **live presence of real agent runtimes** and both runtimes can drive it through the REST API.
+
+### Live presence (`GET /api/presence`)
+
+`integrations.js` reads real runtime state, no dependencies:
+
+- **Hermes Agent**: session leases from `$HERMES_HOME/runtime/active_sessions.json` (pid-liveness-checked) + gateway/platform state from `$HERMES_HOME/gateway_state.json`.
+- **OpenClaw**: probes the gateway's OpenAI surface (`/v1/models` at `OPENCLAW_GATEWAY_URL`, default `http://127.0.0.1:18789`, optional `OPENCLAW_GATEWAY_TOKEN`).
+
+```json
+{ "hermes": { "online": true, "gateway": {"state": "running"}, "platforms": ["mattermost"], "sessions": [...] },
+  "openclaw": { "online": false, "url": "http://127.0.0.1:18789" },
+  "agents": [ { "key": "hermes:gateway", "name": "Hermes Gateway", "runtime": "hermes", "detail": "..." } ] }
+```
+
+The live office (`index.html`) polls this every 15s and renders status chips (green/gray) top-left: sessions per runtime, connected channels, model counts.
+
+### Driving the office from an agent (Hermes tools or OpenClaw skills)
+
+Both runtimes act on the same API — no special code needed:
+
+```bash
+# Walk Charon (concierge desk agent) to the Workstations room and say something
+curl -X POST http://127.0.0.1:19000/api/agent/2/move -H 'Content-Type: application/json' -d '{"x":320,"y":440,"state":"walking"}'
+curl -X POST http://127.0.0.1:19000/api/agent/2/command -H 'Content-Type: application/json' -d '{"type":"move","x":320,"y":440}'
+echo "Triage complete: 3 urgent emails routed." > "$PIXEL_DATA_DIR/agent_2_message.txt"
+```
+
+Full endpoint list: [REST API cheat sheet](#-rest-api-cheat-sheet). Speech-bubble/log files live under `data/` (see `add_calendar_event.sh` for a worked example).
+
 ## 🤖 Built-in automations
 
 | Script | Purpose |
@@ -120,9 +152,15 @@ See [CREDITS.md](CREDITS.md) for a handy table you can keep updated.
 
 ## 📦 Deploy notes
 
+- Makefile shortcuts: `make build` (Docker image), `make run` (container with `data/` mounted and `.env` injected), `make test`, `make logs`, `make clean`. The image never bakes `.env`, `data/` or `node_modules` (see `.dockerignore`). Runtime presence reflects the host from inside the container: mount the runtimes you want visible, e.g. add `-v $(HOME)/.hermes:/root/.hermes:ro` to `make run`, and point `OPENCLAW_GATEWAY_URL` at a reachable gateway.
 - Local demo: `npm start`.
 - Remote share: e.g. `cloudflared tunnel --url http://127.0.0.1:19000` (or any reverse proxy you prefer).
 - `.gitignore` already skips `.env`, `node_modules`, `data/`, backups and temp logs.
+- Notable changes go to [CHANGELOG.md](CHANGELOG.md).
+
+## 🌐 Languages (EN/ES)
+
+The office UI is bilingual. A 🌐 toggle in the top-left overlay switches English ⇄ Español; the choice is remembered in `localStorage` and defaults to the browser language. Translations live in the `I18N` dictionary at the top of `index.html` — static markup uses `data-i18n`/`data-i18n-ph`/`data-i18n-title` attributes, JS strings use `t('key')`. The `dashboard.html` admin panel is currently English-only.
 
 ## ✅ Pre-share checklist
 
@@ -137,4 +175,7 @@ See [CREDITS.md](CREDITS.md) for a handy table you can keep updated.
 ## 🇪🇸 Resumen en español
 
 Pixel Office es un tablero retro para ver a tus agentes como personajes pixelados, editar habitaciones y colisiones desde un dashboard con contraseña y automatizar eventos mediante scripts. Sigue los pasos de "Quick start" (copiar `.env`, instalar dependencias, poblar `data/` desde `sample-data/` y arrancar `npm start`). Toda la API y los scripts están documentados arriba; solo recuerda que la carpeta `data/` queda fuera del repositorio para no filtrar estados reales.
+
+Novedades: la oficina muestra la **presencia en vivo de Hermes Agent y OpenClaw** (`GET /api/presence` + chips de estado), la interfaz del visor es **bilingüe (EN/ES)** con el interruptor 🌐 arriba a la izquierda, hay un **Makefile** para construir y correr la imagen Docker (`make build && make run`) y los cambios importantes se registran en `CHANGELOG.md`.
+
 Sprites: MetroCity Free Topdown Character Pack (JIK-a-4). Tileset: Office Interior Tileset de Donarg (no incluido; cópialo como `assets/oficina.png` si lo compras).

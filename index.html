@@ -56,12 +56,97 @@
         
     </style>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // === i18n (EN/ES). Keys below; static markup uses data-i18n / data-i18n-ph / data-i18n-title.
+        const I18N = {
+            en: {
+                aiDirector: 'AI Director', log: 'Log', dashboard: 'Dashboard', email: 'Email', contacts: 'Contacts',
+                time: 'Time:',
+                briefing: 'Nocturnal Briefing',
+                briefingLoading: 'Charon is preparing the briefing...',
+                noBriefing: 'No briefing available.',
+                briefingFailed: 'Failed to get briefing: ',
+                ollamaNotConfigured: 'Ollama API not configured. Using basic mode...',
+                ollamaConnError: 'Connection error with Ollama. Check server availability.',
+                sessionStarted: 'Session started. Ask characters to perform tasks.',
+                systemGuide: 'System Guide',
+                exampleCommand: 'Example: "Tell Charon to go to the Archives" or "Wardog, I want you to sit down and work"',
+                inputPh: 'Type your command...',
+                voiceTitle: 'Voice dictation',
+                selectFilter: 'Select at least one filter',
+                noEntries: 'No entries for this filter',
+                loadingAccounts: 'Loading accounts...',
+                syncStatus: 'Loading sync status...',
+                contactPh: 'Search contacts by name, email, or org...',
+                emailBack: '← Back',
+                contactBack: '← Back to List',
+                loading: 'Loading...',
+                offline: 'offline',
+                session: 'session', sessions: 'sessions',
+                channels: 'channels',
+                model: 'model', models: 'models'
+            },
+            es: {
+                aiDirector: 'Director IA', log: 'Registro', dashboard: 'Panel', email: 'Correo', contacts: 'Contactos',
+                time: 'Tiempo:',
+                briefing: 'Informe Nocturnal',
+                briefingLoading: 'Charon está preparando el informe...',
+                noBriefing: 'No hay informe disponible.',
+                briefingFailed: 'Error al obtener el informe: ',
+                ollamaNotConfigured: 'API de Ollama sin configurar. Usando modo básico...',
+                ollamaConnError: 'Error de conexión con Ollama. Verifica la disponibilidad del servidor.',
+                sessionStarted: 'Sesión iniciada. Pide a los personajes que realicen tareas.',
+                systemGuide: 'Guía del sistema',
+                exampleCommand: 'Ejemplo: «Dile a Charon que vaya a los Archivos» o «Wardog, siéntate a trabajar»',
+                inputPh: 'Escribe tu comando...',
+                voiceTitle: 'Dictado por voz',
+                selectFilter: 'Selecciona al menos un filtro',
+                noEntries: 'Sin entradas para este filtro',
+                loadingAccounts: 'Cargando cuentas...',
+                syncStatus: 'Cargando estado de sincronización...',
+                contactPh: 'Busca contactos por nombre, email u organización...',
+                emailBack: '← Volver',
+                contactBack: '← Volver a la lista',
+                loading: 'Cargando...',
+                offline: 'sin conexión',
+                session: 'sesión', sessions: 'sesiones',
+                channels: 'canales',
+                model: 'modelo', models: 'modelos'
+            }
+        };
+        let LANG = localStorage.getItem('pixel_lang') ||
+            (((navigator.language || 'en').toLowerCase().startsWith('es')) ? 'es' : 'en');
+
+        function t(key) {
+            const d = I18N[LANG] || I18N.en;
+            return (key in d) ? d[key] : (I18N.en[key] ?? key);
+        }
+
+        function applyI18n() {
+            document.documentElement.lang = LANG;
+            document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+            document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+            document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
+            const label = document.getElementById('langLabel');
+            if (label) label.textContent = LANG.toUpperCase();
+            // Re-render JS-owned strings (presence chips) in the active language
+            if (typeof pollRuntimePresence === 'function') pollRuntimePresence();
+        }
+
+        function setLang(lang) {
+            LANG = lang;
+            localStorage.setItem('pixel_lang', lang);
+            applyI18n();
+        }
+    </script>
 </head>
 <body>
     <div id="gameContainer">
         <canvas id="gameCanvas" width="640" height="800"></canvas>
         <div id="ui">
-            <div>Time: <span id="timer">0</span>s</div>
+            <div><span data-i18n="time">Time:</span> <span id="timer">0</span>s</div>
+            <div id="runtimeChips" style="display:flex;flex-direction:column;gap:2px;margin-top:4px;font-size:11px;"></div>
+            <div id="langToggle" style="margin-top:6px;font-size:11px;color:#9ca3af;cursor:pointer;pointer-events:auto;" onclick="setLang(LANG==='en'?'es':'en')" title="Language / Idioma">🌐 <span id="langLabel">EN</span></div>
         </div>
     </div>
 
@@ -72,24 +157,24 @@
         <div class="flex border-b border-gray-700 bg-gray-900 rounded-t-lg">
             <button id="tabChat" class="flex-1 py-3 text-sm font-bold text-blue-400 border-b-2 border-blue-400 flex items-center justify-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                AI Director
+                <span data-i18n="aiDirector">AI Director</span>
             </button>
             <button id="tabLog" class="flex-1 py-3 text-sm font-bold text-gray-400 hover:text-gray-200 flex items-center justify-center gap-2 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                Log
+                <span data-i18n="log">Log</span>
             </button>
             <a href="dashboard.html" target="_blank" id="tabDashboard" class="flex-1 py-3 text-sm font-bold text-gray-400 hover:text-gray-200 flex items-center justify-center gap-2 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-                Dashboard
+                <span data-i18n="dashboard">Dashboard</span>
             </a>
             <button id="tabEmail" class="flex-1 py-3 text-sm font-bold text-gray-400 hover:text-gray-200 flex items-center justify-center gap-2 transition-colors relative">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                Email
+                <span data-i18n="email">Email</span>
                 <span id="emailBadge" class="hidden absolute top-1 right-3 bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5">0</span>
             </button>
             <button id="tabContacts" class="flex-1 py-3 text-sm font-bold text-gray-400 hover:text-gray-200 flex items-center justify-center gap-2 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                Contacts
+                <span data-i18n="contacts">Contacts</span>
             </button>
         </div>
 
@@ -99,18 +184,18 @@
             <div class="px-4 pt-3 pb-2 bg-gray-900 border-b border-gray-700">
                 <button id="briefingBtn" onclick="getNocturnalBriefing()" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white text-sm font-bold py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10 10 10 0 0 0-10-10z"></path><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    Nocturnal Briefing
+                    <span data-i18n="briefing">Nocturnal Briefing</span>
                 </button>
             </div>
             <div class="flex-1 p-4 overflow-y-auto" id="chatHistory">
                 <div class="mb-4 text-xs text-gray-500 text-center border-b border-gray-700 pb-2">
-                    Session started. Ask characters to perform tasks.
+                    <span data-i18n="sessionStarted">Session started. Ask characters to perform tasks.</span>
                 </div>
                 
                 <div class="space-y-4" id="chatMessages">
                     <div class="flex flex-col bg-gray-700/50 p-3 rounded-lg border border-gray-600/50 w-4/5">
-                        <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider mb-1">System Guide</span>
-                        <span class="text-sm text-gray-200">Example: "Tell Charon to go to the Archives" or "Wardog, I want you to sit down and work"</span>
+                        <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider mb-1"><span data-i18n="systemGuide">System Guide</span></span>
+                        <span class="text-sm text-gray-200" data-i18n="exampleCommand">Example: "Tell Charon to go to the Archives" or "Wardog, I want you to sit down and work"</span>
                     </div>
                 </div>
             </div>
@@ -129,8 +214,8 @@
             <!-- Command Input -->
             <div class="p-4 bg-gray-800 border-t border-gray-700 rounded-b-lg">
                 <form id="aiPromptForm" class="flex gap-2">
-                    <input type="text" id="aiPromptInput" placeholder="Type your command..." class="flex-1 bg-gray-900 text-white placeholder-gray-500 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500" autocomplete="off">
-                    <button type="button" id="micBtn" class="bg-gray-700 hover:bg-gray-600 text-gray-300 p-2 rounded-lg transition-colors flex items-center justify-center relative group" title="Voice dictation">
+                    <input type="text" id="aiPromptInput" placeholder="Type your command..." data-i18n-ph="inputPh" class="flex-1 bg-gray-900 text-white placeholder-gray-500 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500" autocomplete="off">
+                    <button type="button" id="micBtn" class="bg-gray-700 hover:bg-gray-600 text-gray-300 p-2 rounded-lg transition-colors flex items-center justify-center relative group" title="Voice dictation" data-i18n-title="voiceTitle">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" x2="12" y1="19" y2="22"></line></svg>
                     </button>
                     <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-lg transition-colors flex items-center justify-center">
@@ -174,7 +259,7 @@
                 </div>
                 <!-- Account chips -->
                 <div id="emailAccountChips" style="display: flex; overflow-x: auto; padding: 6px 8px; gap: 6px;">
-                    <span style="color: #6b7280; font-size: 11px; padding: 4px 8px;">Loading accounts...</span>
+                    <span style="color: #6b7280; font-size: 11px; padding: 4px 8px;" data-i18n="loadingAccounts">Loading accounts...</span>
                 </div>
             </div>
             <!-- Email List -->
@@ -192,7 +277,7 @@
             </div>
             <!-- Back button + refresh -->
             <div style="padding: 8px 12px; background: #1f2937; border-top: 1px solid #374151; display: flex; gap: 8px;">
-                <button id="emailBackBtn" class="hidden" onclick="closeEmail()" style="flex: 1; background: #374151; color: #d1d5db; padding: 6px; border-radius: 4px; font-size: 11px; border: none; cursor: pointer;">← Back</button>
+                <button id="emailBackBtn" class="hidden" onclick="closeEmail()" data-i18n="emailBack" style="flex: 1; background: #374151; color: #d1d5db; padding: 6px; border-radius: 4px; font-size: 11px; border: none; cursor: pointer;">← Back</button>
                 <button onclick="refreshEmail()" style="flex: 1; background: #2563eb; color: white; padding: 6px; border-radius: 4px; font-size: 11px; border: none; cursor: pointer;">🔄 Refresh</button>
             </div>
         </div>
@@ -201,11 +286,11 @@
         <div id="viewContacts" class="hidden" style="flex-direction: column; flex: 1; overflow: hidden;">
             <!-- Search bar -->
             <div style="padding: 8px 12px; background: #1f2937; border-bottom: 1px solid #374151;">
-                <input id="contactSearch" type="text" placeholder="Search contacts by name, email, or org..." style="width: 100%; background: #111827; border: 1px solid #374151; border-radius: 4px; padding: 6px 10px; color: #d1d5db; font-size: 12px; outline: none;" />
+                <input id="contactSearch" type="text" placeholder="Search contacts by name, email, or org..." data-i18n-ph="contactPh" style="width: 100%; background: #111827; border: 1px solid #374151; border-radius: 4px; padding: 6px 10px; color: #d1d5db; font-size: 12px; outline: none;" />
             </div>
             <!-- Sync status bar -->
             <div id="syncStatusBar" style="padding: 6px 12px; background: #0f172a; border-bottom: 1px solid #374151; font-size: 10px; color: #6b7280; display: flex; gap: 12px; align-items: center;">
-                <span id="syncStatusText">Loading sync status...</span>
+                <span id="syncStatusText" data-i18n="syncStatus">Loading sync status...</span>
             </div>
             <!-- Contact list -->
             <div id="contactList" style="flex: 1; overflow-y: auto; background: #111827;">
@@ -217,7 +302,7 @@
             </div>
             <!-- Back button -->
             <div style="padding: 8px 12px; background: #1f2937; border-top: 1px solid #374151; display: flex; gap: 8px;">
-                <button id="contactBackBtn" class="hidden" onclick="closeContact()" style="flex: 1; background: #374151; color: #d1d5db; padding: 6px; border-radius: 4px; font-size: 11px; border: none; cursor: pointer;">← Back to List</button>
+                <button id="contactBackBtn" class="hidden" onclick="closeContact()" data-i18n="contactBack" style="flex: 1; background: #374151; color: #d1d5db; padding: 6px; border-radius: 4px; font-size: 11px; border: none; cursor: pointer;">← Back to List</button>
             </div>
         </div>
     </div>
@@ -1323,7 +1408,7 @@
             const btn = document.getElementById('briefingBtn');
             const originalHTML = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<svg class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Charon is preparing the briefing...';
+            btn.innerHTML = '<svg class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> ' + t('briefingLoading');
             
             try {
                 const res = await fetch('/api/briefing/ai');
@@ -1331,7 +1416,7 @@
                 const data = await res.json();
                 
                 // Format the briefing text with line breaks for HTML
-                const formatted = (data.briefing || 'No briefing available.').replace(/\n/g, '<br>');
+                const formatted = (data.briefing || t('noBriefing')).replace(/\n/g, '<br>');
                 
                 // Add as a special Charon briefing message
                 const container = document.getElementById('chatMessages');
@@ -1348,7 +1433,7 @@
                 container.appendChild(div);
                 setTimeout(() => { history.scrollTop = history.scrollHeight; }, 10);
             } catch (err) {
-                addChatMessage('System', 'Failed to get briefing: ' + err.message, 'ai');
+                addChatMessage('System', t('briefingFailed') + err.message, 'ai');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalHTML;
@@ -1435,7 +1520,7 @@
             
             if (false) { // Always use Ollama proxy now
                 // Fallback Simulado Original
-                addChatMessage('System', 'Ollama API not configured. Using basic mode...', 'ai');
+                addChatMessage('System', t('ollamaNotConfigured'), 'ai');
                 setTimeout(() => {
                     if (characters.length > 0) {
                         // Check if "everyone" was mentioned
@@ -1609,7 +1694,7 @@ Write NOTHING MORE than raw JSON, without code block markdown.`;
                 console.error(err);
                 const msgs = document.getElementById('chatMessages');
                 if(msgs.lastChild && msgs.lastChild.textContent.includes('Thinking...')) msgs.lastChild.remove();
-                addChatMessage('System', 'Connection error with Ollama. Check server availability.', 'ai');
+                addChatMessage('System', t('ollamaConnError'), 'ai');
             });
         });
 
@@ -1797,8 +1882,8 @@ Write NOTHING MORE than raw JSON, without code block markdown.`;
             if (filteredLogs.length === 0) {
                 const activeFilters = Object.values(logFilters).some(Boolean);
                 const noLogsMsg = (!activeFilters) 
-                    ? 'Select at least one filter' 
-                    : 'No entries for this filter';
+                    ? t('selectFilter')
+                    : t('noEntries');
                 logEntries.innerHTML = `<div style="color: #6b7280; text-align: center; padding: 20px;">${noLogsMsg}</div>`;
                 return;
             }
@@ -2006,7 +2091,7 @@ Write NOTHING MORE than raw JSON, without code block markdown.`;
                 return;
             }
             const acct = emailAccounts.find(a => a.id === selectedAccountId);
-            listEl.innerHTML = `<div style="padding: 12px; font-size: 12px; color: #6b7280; text-align: center; border-bottom: 1px solid #374151;">${acct ? acct.icon + ' ' + escapeHtml(acct.name) : ''} — Loading...</div>`;
+            listEl.innerHTML = `<div style="padding: 12px; font-size: 12px; color: #6b7280; text-align: center; border-bottom: 1px solid #374151;">${acct ? acct.icon + ' ' + escapeHtml(acct.name) : ''} — ${t('loading')}</div>`;
             try {
                 const res = await fetch(`/api/email/inbox?limit=20&account=${selectedAccountId}`);
                 const data = await res.json();
@@ -2049,7 +2134,7 @@ Write NOTHING MORE than raw JSON, without code block markdown.`;
             const detailEl = document.getElementById('emailDetail');
             const listEl = document.getElementById('emailList');
             if (!detailEl) return;
-            detailEl.innerHTML = '<div class="text-gray-500 text-center py-4 text-xs">Loading...</div>';
+            detailEl.innerHTML = '<div class="text-gray-500 text-center py-4 text-xs">' + t('loading') + '</div>';
             listEl.classList.add('hidden');
             detailEl.classList.remove('hidden');
             document.getElementById('emailBackBtn').classList.remove('hidden');
@@ -2124,6 +2209,39 @@ Write NOTHING MORE than raw JSON, without code block markdown.`;
         pollUnread();
         setInterval(pollUnread, 60000);
 
+        // === Agent runtime presence chips (Hermes + OpenClaw) ===
+        async function pollRuntimePresence() {
+            try {
+                const res = await fetch('/api/presence');
+                const p = await res.json();
+                const box = document.getElementById('runtimeChips');
+                if (!box || !p) return;
+                const detail = (runtime) => (p.agents || [])
+                    .filter(a => a.runtime === runtime)
+                    .map(a => `${a.name}: ${a.detail}`).join('\n') || 'offline';
+                const chip = (label, online, tip) => {
+                    const dot = online ? '#4ade80' : '#6b7280';
+                    return `<span style="color:#9ca3af;" title="${detail(tip).replace(/"/g, '&quot;')}"><span style="color:${dot};">●</span> ${label}</span>`;
+                };
+                const h = p.hermes || {};
+                const oc = p.openclaw || {};
+                const gwRunning = h.gateway && h.gateway.state === 'running';
+                const hLabel = gwRunning
+                    ? `Hermes · ${h.sessions.length} ${t(h.sessions.length === 1 ? 'session' : 'sessions')}${(h.platforms || []).length ? ' · ' + t('channels') + ': ' + h.platforms.join(',') : ''}`
+                    : 'Hermes · ' + t('offline');
+                box.innerHTML =
+                    chip(hLabel, !!h.online, 'hermes') +
+                    chip(oc.online
+                        ? (oc.models ? `OpenClaw · ${oc.models.length} ${t(oc.models.length === 1 ? 'model' : 'models')}` : 'OpenClaw')
+                        : 'OpenClaw · ' + t('offline'), !!oc.online, 'openclaw');
+            } catch (e) { /* chips keep last state on transient errors */ }
+        }
+        pollRuntimePresence();
+        setInterval(pollRuntimePresence, 15000);
+
+        // Apply saved/browser language to all data-i18n elements once the DOM is parsed
+        applyI18n();
+
         // === Contacts Panel Logic ===
         let contactSearchTimer = null;
 
@@ -2181,7 +2299,7 @@ Write NOTHING MORE than raw JSON, without code block markdown.`;
         async function openContact(id) {
             const detailEl = document.getElementById('contactDetail');
             const listEl = document.getElementById('contactList');
-            detailEl.innerHTML = '<div style="padding:16px;font-size:12px;color:#6b7280;text-align:center;">Loading...</div>';
+            detailEl.innerHTML = '<div style="padding:16px;font-size:12px;color:#6b7280;text-align:center;">' + t('loading') + '</div>';
             listEl.classList.add('hidden');
             detailEl.classList.remove('hidden');
             document.getElementById('contactBackBtn').classList.remove('hidden');

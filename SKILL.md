@@ -63,6 +63,12 @@ Hay tres scripts Bash que usan la API para mover agentes (Pep, Marian y Dustin/D
 
 Revísalos si algo no aparece en la oficina: suelen dejar trazas en `pixel_actions.jsonl`.
 
+### Presencia nativa de Hermes y OpenClaw (nuevo)
+
+* `integrations.js` + `GET /api/presence` exponen el estado real de **Hermes Agent** (sesiones y gateway de `~/.hermes`) y **OpenClaw** (probe HTTP del gateway, `OPENCLAW_GATEWAY_URL`/`OPENCLAW_GATEWAY_TOKEN`).
+* `index.html` sondea esa API cada 15 s y dibuja chips de estado (verde/gris) sobre el canvas.
+* Ambos runtimes mueven personajes por la misma API REST: ver la sección "First-class agent runtimes" del README.
+
 ---
 
 ## 5. Publicar o compartir
