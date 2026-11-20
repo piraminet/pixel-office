@@ -210,6 +210,32 @@ Eligibility: independent of live integrations; depends on nothing else. Structur
 
 **Verdict: PASS** (C4.1–C4.6 executed). Component qualification only: Python app boots, serves health, enforces auth, shuts down gracefully. No live deployment qualification (G19/G20).
 
+### G5 — Provider and component architecture (executed 2026-11-20)
+
+**Objective:** lightweight provider registry — mandate categories/states, explicit promotion, deterministic selection, no unapproved fallback, auditable usage. Eligibility: independent of live infrastructure.
+
+**Files:** `src/pixel_startup/providers/{__init__,registry}.py` (`ProviderCategory` ×12, `ProviderState` ×7, `ProviderRegistration`, `ProviderRegistry`, legal-transition table), `tests/test_providers.py` (11 tests), `src/pixel_startup/main.py` wiring (`Container.registry`; lifespan registers + promotes the deployed JS stack), `src/pixel_startup/log.py` (`logger` export).
+
+**Acceptance evidence:**
+- Categories/states exactly the mandate sets (12/7). Legal transitions: discovered→registered→candidate→qualified→active→deprecated→disabled; skip-jumps rejected (test: candidate→active raises `ProviderError`).
+- `register()` cannot promote (only discovered/registered/candidate accepted); promotion only via explicit `transition()`; `qualified_at` stamped on first qualification.
+- Deterministic selection: highest `priority`, id tiebreak (test: three active providers, `(priority, id)` order verified).
+- **No fallback / no silent switch after permission failure:** `invoke()` on a higher-priority provider raising `PermissionError` audits `deny` and re-raises; lower-priority provider NOT called (test proves 0 calls), no retry (call count 1). Generic errors: audited `error`, re-raised, no retry. No automatic retries of side-effecting operations anywhere (idempotency not established yet).
+- Existing deployed implementation remains usable AND top priority: lifespan registers `pixel_office_js` (category `operational_persistence`, implementation `javascript`, endpoint `http://127.0.0.1:<port>`, priority 100) through the full explicit promotion sequence to ACTIVE — the office's own state store until G20 promotion.
+- Candidates testable independently without activation (`invoke_provider` on a candidate/registered provider).
+- Usage audit: append-only `registry.audit` (ts, provider, category, operation, allow/deny/error, sanitized detail) — persistence lands in G6.
+- Contract tie-in: `registry.to_descriptor()` emits a provider descriptor that validates against the G3 `ProviderDescriptor.schema.json` (subset checker, zero errors in test).
+- Honesty: external (JS) provider selected but in-process `invoke` raises `ProviderError "no in-process handler"` and audits `error` — no fabricated results.
+
+**Test commands + results:** `uv run pytest` → 25 passed (11 G5 + 14 G4); `uv run ruff check src tests` clean; `ruff format --check` clean; `uv run pyright` 0 errors; `npm test` 44/44 (coexistence unchanged). Reproduction: `make python-test`.
+
+**Design decisions:** in-process handler contract (`invoke(operation, payload) -> dict`) is the minimal capability surface; selection priority is data (integer), so G20 cutover is promotion-order bookkeeping, not code change; audit entries mirror the G3 `AuditEvent` semantics (`allow|deny|error`) for later G6 persistence.
+**Security implications:** authorization failures are terminal (no fallback), usage auditable from day one; no credentials involved (credential_execution remains unpopulated until G10).
+**Rollback implications:** delete providers package + test file; main.py reverts to DI-less container; JS unaffected.
+**Limitations:** audit is in-memory only (G6); no HTTP exposure of registry yet (a G16+/G19 concern); cross-runtime invocation of external providers is endpoint-only (documented, honest).
+
+**Verdict: PASS.** Component qualification only (registry has no live external integrations to qualify yet — those are G7/G11/G12/G13).
+
 ### G5-G20 dependencies and known blockers (for scheduling)
 
 - G7 (OpenClaw) live qualification BLOCKED on this host: no OpenClaw install/gateway address; proceed adapter-vs-contract + mock, record BLOCKED for live rows.

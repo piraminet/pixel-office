@@ -8,7 +8,6 @@ G4 criteria covered here:
 - Docs endpoints disabled for the candidate backend (G2 hardening parity).
 """
 
-import logging
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 
@@ -18,20 +17,48 @@ from fastapi.responses import JSONResponse
 
 from pixel_startup.api import health
 from pixel_startup.config import Settings, load_settings
-from pixel_startup.log import setup_logging
-
-logger = logging.getLogger("pixel_startup.main")
+from pixel_startup.log import logger, setup_logging
+from pixel_startup.providers.registry import (
+    ProviderCategory,
+    ProviderRegistration,
+    ProviderRegistry,
+    ProviderState,
+)
 
 
 @dataclass
 class Container:
-    """Dependency-injection seam. Providers register here starting with G5."""
+    """Dependency-injection seam; the G5 provider registry lives here."""
 
     providers: dict[str, object] = field(default_factory=dict)
+    registry: ProviderRegistry = field(default_factory=ProviderRegistry)
     shutdowns: int = 0
 
     def register(self, provider_id: str, provider: object) -> None:
         self.providers[provider_id] = provider
+
+
+def _register_deployed_js_stack(container: Container, settings: Settings) -> None:
+    """The deployed JS implementation enters the registry top-priority and ACTIVE.
+
+    Mandate G5: the currently deployed implementation retains priority until its
+    replacement is qualified — modeled as an explicit promotion sequence, not a
+    registration shortcut.
+    """
+    reg = container.registry.register(
+        ProviderRegistration(
+            provider_id="pixel_office_js",
+            category=ProviderCategory.OPERATIONAL_PERSISTENCE,
+            implementation="javascript",
+            endpoint=f"http://127.0.0.1:{settings.port}",
+            capabilities=["agents.config.read", "rooms.read", "actions.append"],
+            priority=100,
+            detail="deployed JS stack: authoritative until Python qualifies",
+        )
+    )
+    container.registry.transition(reg.provider_id, ProviderState.CANDIDATE)
+    container.registry.transition(reg.provider_id, ProviderState.QUALIFIED)
+    container.registry.transition(reg.provider_id, ProviderState.ACTIVE)
 
 
 def build_error(status_code: int, message: str, detail: str | None = None) -> JSONResponse:
@@ -46,6 +73,7 @@ async def lifespan(app: FastAPI):
     settings: Settings = app.state.settings
     container: Container = app.state.container
     setup_logging()
+    _register_deployed_js_stack(container, settings)
     logger.info(
         "backend starting",
         extra={
@@ -54,8 +82,17 @@ async def lifespan(app: FastAPI):
             "detail": (
                 f"secrets: session_secret={'set' if settings.is_session_secret_set else 'UNSET'}, "
                 f"api_token={'set' if settings.is_api_token_set else 'UNSET'}; "
-                f"providers={len(container.providers)}"
+                f"providers={len(container.registry.all())}"
             ),
+        },
+    )
+    active_count = sum(1 for p in container.registry.all() if p.state is ProviderState.ACTIVE)
+    logger.info(
+        "provider snapshot",
+        extra={
+            "event": "providers.snapshot",
+            "component": "registry",
+            "detail": f"active={active_count}",
         },
     )
     app.state.ready = True
