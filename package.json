@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "node test_presence.js && node tests/api-baseline.js",
+    "test": "node test_presence.js && node tests/api-baseline.js && node tests/environments.js",
     "start": "node server.js"
   },
   "keywords": [],
