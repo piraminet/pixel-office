@@ -24,3 +24,9 @@ assets/background.png
 *.log
 *.tmp
 __MACOSX/
+
+# Python backend (G4+)
+.venv/
+.pytest_cache/
+.ruff_cache/
+**/__pycache__/

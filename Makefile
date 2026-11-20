@@ -7,7 +7,7 @@ ENVFILE := $(wildcard .env)
 VERSION := $(shell node -p "require('./package.json').version")
 
 .DEFAULT_GOAL := help
-.PHONY: help install test build run stop logs clean tag contracts
+.PHONY: help install test build run stop logs clean tag contracts python-setup python-test
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-10s %s\n", $$1, $$2}'
@@ -41,6 +41,15 @@ tag: ## Tag the current commit as annotated v$(VERSION) (SemVer, from package.js
 contracts: ## Validate G3 language-neutral contracts (node + python), fixture parity
 	node tests/contracts/validate_contracts.js
 	python3 tests/contracts/validate_contracts.py
+
+python-setup: ## Sync the Python backend environment (uv; creates .venv + uv.lock)
+	uv sync
+
+python-test: ## Python backend gate: pytest, ruff lint + format, pyright (G4)
+	uv run pytest
+	uv run ruff check src tests
+	uv run ruff format --check src tests
+	uv run pyright src tests
 
 clean: ## Stop the container and remove the image
 	-docker stop $(IMAGE)

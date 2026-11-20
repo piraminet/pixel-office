@@ -194,6 +194,22 @@ Eligibility: independent of live integrations; depends on nothing else. Structur
 - C4.5 The Node.js application remains fully operational during the phase — `npm test` still 55 asserts (11 presence + 44 baseline) PASS and Docker build still succeeds.
 - C4.6 No secrets in source or `.env.example` values; CI-able single command documented (`make python-setup && make python-test`).
 
+**Execution evidence (2026-11-20, main @ 470c369):**
+
+- Files: `pyproject.toml` (fastapi/uvicorn/pydantic/pydantic-settings/httpx; dev group pytest/ruff/pyright; hatchling build for `src/pixel_startup`), `uv.lock` (committed lockfile), `.gitignore` (.venv/caches), `Makefile` (`python-setup`, `python-test`), `src/pixel_startup/{__init__,config,log,main}.py`, `src/pixel_startup/api/{__init__,health}.py`, `src/pixel_startup/security/{__init__,auth}.py`, `tests/test_config.py`, `test_health.py`, `test_auth.py`, `test_lifecycle.py` (14 tests).
+- C4.1 ✓ `make python-setup` → `uv sync` reproducible on clean checkout; `uv.lock` pinned (httpx 0.28.1, fastapi 0.165.0, pydantic 2.14.4).
+- C4.2 ✓ main.py lifecycle (startup JSON log, readiness flag, graceful shutdown handler counting teardown); config.py pydantic-settings with NO secret defaults (presence flags `is_*_set` for logging); `/healthz` + `/readyz` (unversioned) + `/api/v1/ping` (first protected /v1 route); structured JSON logging to stdout (`log.py`); consistent error envelope `{"error":{"code","message"}}` on HTTP errors, 404 catch-all and opaque 500s (validation messages exclude input values); auth middleware = session-cookie-or-bearer, fail-closed, timing-safe compares (mirrors G2; candidate cookie format `v1.<expiry>.<hmac>` is NOT yet wire-compatible with the JS cookie — parity deferred to G20 shadow testing); DI seam `app.state.container` (`Container.register`) for G5 providers.
+- C4.3 ✓ pytest 14/14: secret-default absence + env roundtrip; health/ready/404/401-envelope via httpx ASGITransport (no network); bearer accept/reject, cookie accept, expired/bad-sig/garbage rejects, fail-closed-when-secrets-unset, cookie-helper roundtrip; lifespan startup→ready→graceful shutdown exercised via `lifespan_context`; DI seam registration.
+- C4.4 ✓ `ruff check` clean, `ruff format --check` clean (13 files), `pyright` **0 errors** (1 warning: jsonschema type stubs not installed in the candidate venv — the G3 fallback import; accepted, not an error).
+- C4.5 ✓ `npm test` presence + 44/44 baseline PASS with the Python tree present; `make build` exit 0 (JS image unchanged in behavior — new dirs are inert to the Node runtime).
+- C4.6 ✓ single documented command (`make python-setup && make python-test` — both verified); no secret values in source (settings default `None`; `.env.example` untouched); only clearly synthetic creds in tests (`tok-test`, `sectest`).
+- Design decisions: candidate backend serves no JS-replacement routes yet (ping only) — coexistence by design; docs/redoc/openapi endpoints disabled (G2 hardening parity); ASGITransport is async-only in httpx 0.28 → request tests drive `anyio.run` (anyio already ships with FastAPI, zero new deps).
+- Reproduction: `make python-setup && make python-test`; `npm test`; `make build`.
+- Security implications: all `/api/v1/*` routes fail closed when secrets are unset; secret values never logged (presence flags only); no secrets in repo. Rollback: remove `pyproject.toml`, `uv.lock`, `src/`, Python tests, Makefile targets — JS stack unaffected.
+- Limitations: no SQLite persistence yet (G6); no provider registry yet (G5); readiness is single-process; cookie format not yet cross-runtime.
+
+**Verdict: PASS** (C4.1–C4.6 executed). Component qualification only: Python app boots, serves health, enforces auth, shuts down gracefully. No live deployment qualification (G19/G20).
+
 ### G5-G20 dependencies and known blockers (for scheduling)
 
 - G7 (OpenClaw) live qualification BLOCKED on this host: no OpenClaw install/gateway address; proceed adapter-vs-contract + mock, record BLOCKED for live rows.

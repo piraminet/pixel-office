@@ -16,6 +16,7 @@ Also enforces the G3 structural criteria:
 
 Exit 0 = all checks pass. Any failure exits 1 with the offending path.
 """
+
 import json
 import os
 import re
@@ -25,10 +26,21 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 SCHEMAS = os.path.join(ROOT, "contracts", "schemas")
 FIX = os.path.join(ROOT, "tests", "contracts", "fixtures")
 
-SEPARATION_FIELDS = ["employee_id", "sprite_id", "native_harness_id", "harness_instance_id",
-                     "session_id", "current_task_id", "operational_scope", "authorization_context"]
-SECRET_KEY_RX = re.compile(r"secret|password|api[_-]?key|private[_-]?key|token[_-]?value|"
-                           r"bearer|credential[_-]?value|client[_-]?secret", re.IGNORECASE)
+SEPARATION_FIELDS = [
+    "employee_id",
+    "sprite_id",
+    "native_harness_id",
+    "harness_instance_id",
+    "session_id",
+    "current_task_id",
+    "operational_scope",
+    "authorization_context",
+]
+SECRET_KEY_RX = re.compile(
+    r"secret|password|api[_-]?key|private[_-]?key|token[_-]?value|"
+    r"bearer|credential[_-]?value|client[_-]?secret",
+    re.IGNORECASE,
+)
 
 
 def load(path):
@@ -101,6 +113,7 @@ validate_subset = check  # identical rule semantics to the JS validator
 def main():
     try:
         from jsonschema import Draft202012Validator
+
         impl = "jsonschema"
     except ImportError:
         Draft202012Validator = None
@@ -112,9 +125,19 @@ def main():
     expectations = []
     for f in sorted(x for x in os.listdir(os.path.join(FIX, "valid")) if x.endswith(".valid.json")):
         n = f[:-11]
-        expectations.append((os.path.join(FIX, "valid", f), os.path.join(SCHEMAS, n + ".schema.json"), True))
-    for n in sorted(f[:-13] for f in os.listdir(os.path.join(FIX, "invalid")) if f.endswith(".invalid.json")):
-        expectations.append((os.path.join(FIX, "invalid", n + ".invalid.json"), os.path.join(SCHEMAS, n.split(".")[0] + ".schema.json"), False))
+        expectations.append(
+            (os.path.join(FIX, "valid", f), os.path.join(SCHEMAS, n + ".schema.json"), True)
+        )
+    for n in sorted(
+        f[:-13] for f in os.listdir(os.path.join(FIX, "invalid")) if f.endswith(".invalid.json")
+    ):
+        expectations.append(
+            (
+                os.path.join(FIX, "invalid", n + ".invalid.json"),
+                os.path.join(SCHEMAS, n.split(".")[0] + ".schema.json"),
+                False,
+            )
+        )
 
     for fpath, spath, should_pass in expectations:
         fx, sc = load(fpath), load(spath)
@@ -141,7 +164,11 @@ def main():
     else:
         passed += 1
     # C3.5: asserted_id vs verified_binding
-    if "asserted_id" in req and "verified_binding" in req and "asserted_id" not in ai["properties"].get("verified_binding", {}).get("properties", {}):
+    if (
+        "asserted_id" in req
+        and "verified_binding" in req
+        and "asserted_id" not in ai["properties"].get("verified_binding", {}).get("properties", {})
+    ):
         passed += 1
     else:
         failures.append("FAIL C3.5 asserted_id/verified_binding distinction")
