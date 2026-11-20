@@ -92,7 +92,7 @@ Acceptance criteria:
 
 **Design decisions:** auth-before-existence on unknown agents (401 over 404 for unauth); read-mostly public office surface (config/log/presence/email reads) — documented residual; contacts `:id`/`interactions`/`sync/status` left public (integer-param safe) pending G10 authorization; error-message redaction deferred to G4 (Python standardizes response shapes) — recorded as PARTIAL for S-11.
 
-**Verdict: PASS** (C2.1–C2.9 executed and satisfied; S-11 redaction sweep explicitly deferred with rationale). Files: server.js, index.html, 3 scripts, .env.example, README.md, CHANGELOG.md, tests/api-baseline.js, fixtures. Limitations: in-memory rate-limit + per-boot session secret (reset on restart) — acceptable for MVP office scale, noted. Security implications: no new crypto (Node stdlib HMAC); secrets never logged. Rollback: revert the G2 commit; scripts + README document behavior change.
+**Verdict: PASS** (C2.1–C2.9 executed and satisfied; S-11 redaction sweep explicitly deferred with rationale). Commit: `c571249`. Files: server.js, index.html, 3 scripts, .env.example, README.md, CHANGELOG.md, tests/api-baseline.js, fixtures. Limitations: in-memory rate-limit + per-boot session secret (reset on restart) — acceptable for MVP office scale, noted. Security implications: no new crypto (Node stdlib HMAC); secrets never logged. Rollback: revert the G2 commit; scripts + README document behavior change.
 
 ---
 
@@ -104,4 +104,34 @@ Statuses recorded as: PASS / FAIL / BLOCKED / SKIP / NOT RUN per workflow MVP-01
 
 ## Gates G3-G20 — registered next
 
-Each gate gets its section added at implementation start per discipline. Planned dependency chain: G3 contracts → G4 python foundation → G5 provider registry → G6 persistence → G7 OpenClaw → G8 Hermes → G9 alignment → G10 secrets → G11 memory → G12 storage → G13 comms → G14 delegation → G15 integrations → G16 frontend/live → G17 security matix → G18 perf → G19 packaging → G20 cutover. Live-infrastructure blockers already identified: OpenClaw not installed on this host (G7 live), Vaultwarden/CRM/email credentials absent (G10/G13 live) — those gates proceed component-level with synthetic fixtures and record BLOCKED for live rows.
+### G3 — Language-neutral component contracts (criteria registered 2026-11-20, NOT RUN)
+
+Eligibility: independent (no live infrastructure required). Order: before G4 module shapes.
+
+- C3.1 Versioned JSON Schema files exist under `contracts/` for all 16 mandate types (AgentIdentity, RuntimeBinding, AgentStatus, AgentCapability, Task, TaskReceipt, TaskResult, ActivityEvent, ApprovalRequest, ApprovalResult, ProviderDescriptor, DocumentReference, MemoryReference, CredentialReference, AuditEvent, HealthStatus), each carrying `id`, `type`, `version`.
+- C3.2 An OpenAPI document exposes the same contracts for HTTP payloads.
+- C3.3 A shared fixture set (valid + invalid per contract) validates identically through BOTH a Python validator (pydantic/jsonschema from generated models) and a JS validator (node, no new deps: hand-rolled subset validator or ajv — record the choice).
+- C3.4 Invalid fixtures are rejected in both languages; every fixture asserts the 8 identity separations for AgentIdentity (organizational / sprite / native-harness / harness-instance / session / task / scope / authorization-context fields exist and are NOT conflated).
+- C3.5 Caller-supplied agent identifiers are never treated as authenticated identity — schema distinguishes `asserted_id` from `verified_binding`.
+- C3.6 Schema evolution rules documented ( additive version bumps, unknown/unsupported version → explicit 4xx, never silent).
+- C3.7 No raw credential fields anywhere in the 16 contracts (grep audit).
+
+### G4 — Python application foundation (criteria registered 2026-11-20, NOT RUN)
+
+Eligibility: independent of live integrations; depends on nothing else. Structure per mandate §G4, adapted (existing tree stays put; Python additive).
+
+- C4.1 `pyproject.toml` + `uv.lock` pin the stack (fastapi, uvicorn, pydantic, httpx, pytest, ruff, pyright) — reproducible install via `uv sync` on a clean checkout.
+- C4.2 `src/pixel_office/` provides: `main.py` (lifecycle: startup, readiness, graceful shutdown), `config.py` (pydantic-settings from env, NO secret defaults), health/readiness endpoints (`/healthz`, `/readyz`) versioned under `/api/v1/*` where applicable, structured logging in JSON to stdout, per-request validation + consistent error envelope, auth middleware mirroring the G2 model (session cookie or bearer token), and a dependency-injection seam for future providers.
+- C4.3 `pytest` suite green: config, health endpoints via httpx ASGI transport (no network), auth middleware (reject/accept), graceful shutdown handler.
+- C4.4 `ruff check` + `ruff format --check` + `pyright` (basic strictness) all pass with zero errors.
+- C4.5 The Node.js application remains fully operational during the phase — `npm test` still 55 asserts (11 presence + 44 baseline) PASS and Docker build still succeeds.
+- C4.6 No secrets in source or `.env.example` values; CI-able single command documented (`make python-setup && make python-test`).
+
+### G5-G20 dependencies and known blockers (for scheduling)
+
+- G7 (OpenClaw) live qualification BLOCKED on this host: no OpenClaw install/gateway address; proceed adapter-vs-contract + mock, record BLOCKED for live rows.
+- G10/G13 live rows BLOCKED on Vaultwarden API creds / SSH key availability on this host; synthetic-credential component qualification proceeds.
+- G11 (Memory Palace), G12 (MinIO) need endpoint reachability verification from this host before adapter work (WireGuard/gamma network) — verify early in those gates.
+- G18/G19/G20 execute after G8+G12+G13 (needed load profile + packaging).
+- G21 workflows classified per final evidence.
+
