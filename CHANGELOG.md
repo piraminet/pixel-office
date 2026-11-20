@@ -1,9 +1,12 @@
 # Changelog
 
-All notable changes to Pixel Office are documented here.
+All notable changes to **Pixel Startup** (formerly "Pixel Office"; the visual environment keeps that name) are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+### Changed
+- **Project reorientation (G−1):** platform identity moves from Pixel Office to **Pixel Startup** — repository/package `pixel-startup`, future Python package `pixel_startup`, CLI `pixel-startup`. The visual environment keeps the **Pixel Office** name; character identities, sprites, data file formats (`pixel_actions.jsonl`, `pixel-config.json`, …), API routes, the `pixel_session` cookie and the Vaultwarden device identifier are unchanged for backward compatibility.
 
 ### Added
 - **First-class agent runtimes**: `GET /api/presence` with Hermes Agent (session/gateway state under `~/.hermes`) and OpenClaw (gateway HTTP probe) adapters in `integrations.js`; live status chips in the office overlay.

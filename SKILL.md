@@ -1,16 +1,17 @@
 ---
-name: pixel-office
-description: "Panel de control para bots Pixel en OpenClaw: dashboard seguro con edición visual de agentes, mapas y estados."
+name: pixel-startup
+description: "Plataforma de operaciones Pixel Startup: oficina visual (Pixel Office), dashboard seguro, API y agentes de los harnesses Hermes/OpenClaw."
 ---
 
-# Pixel Office Skill
+# Pixel Startup Skill
 
-Este Skill te guía para levantar y mantener el dashboard pixelado que controla a tus agentes locales. Úsalo cada vez que necesites (1) reinstalar, (2) ajustar la configuración o (3) enseñar a otra persona a personalizar su propia oficina.
+Esta guía orienta la puesta en marcha y el mantenimiento de la plataforma Pixel Startup y su oficina visual (Pixel Office). Úsala cuando necesites (1) reinstalar, (2) ajustar la configuración o (3) enseñar a otra persona a personalizar su propia oficina.
 
 ---
 
-## 0. ¿Qué es Pixel Office?
-> "Es un servidor Node que muestra la oficina pixelada, expone una API para mover agentes y trae un dashboard protegido por contraseña para editar habitaciones, colisiones y personajes de forma visual."
+## 0. ¿Qué es Pixel Startup?
+
+> "Pixel Startup es una plataforma Node que muestra la oficina pixelada (Pixel Office), expone una API para mover agentes y trae un dashboard protegido por contraseña para editar habitaciones, colisiones y personajes de forma visual."
 
 Recuerda contárselo así al usuario antes de ponerte manos a la obra.
 

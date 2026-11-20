@@ -1,4 +1,8 @@
-# Pixel Office
+# Pixel Startup
+
+**Pixel Startup** is the persistent, multi-harness organizational operations platform behind the pixel office. **Pixel Office** remains the name of the visual office component you see here — the retro pixel-art environment with its characters (Curator, Charon, Wardog, Fixer, Tailor, Ghostface), rooms and speech bubbles.
+
+> Formerly released as "Pixel Office" (npm package `pixel`); the platform identity moved to Pixel Startup with the Python backend migration (`docs/migration/`). Git history, upstream attribution and licenses are unchanged — see [CREDITS.md](CREDITS.md).
 
 Retro control room for OpenClaw agents: live pixel-art office, secure dashboard to edit rooms/collision maps, and automation hooks for scripts and AI directors.
 
@@ -176,7 +180,7 @@ The office UI is bilingual. A 🌐 toggle in the top-left overlay switches Engli
 
 ## 🇪🇸 Resumen en español
 
-Pixel Office es un tablero retro para ver a tus agentes como personajes pixelados, editar habitaciones y colisiones desde un dashboard con contraseña y automatizar eventos mediante scripts. Sigue los pasos de "Quick start" (copiar `.env`, instalar dependencias, poblar `data/` desde `sample-data/` y arrancar `npm start`). Toda la API y los scripts están documentados arriba; solo recuerda que la carpeta `data/` queda fuera del repositorio para no filtrar estados reales.
+Pixel Office es el entorno visual de **Pixel Startup**, la plataforma de operaciones organizacionales multi-harness. Este tablero retro sigue siendo la cara visible: agentes pixelados, habitaciones editables y automatización por scripts; los pasos de "Quick start" aplican tal cual (copiar `.env`, instalar dependencias, poblar `data/` y arrancar `npm start`). Toda la API y los scripts están documentados arriba; la carpeta `data/` queda fuera del repositorio para no filtrar estados reales.
 
 Novedades: la oficina muestra la **presencia en vivo de Hermes Agent y OpenClaw** (`GET /api/presence` + chips de estado), la interfaz del visor es **bilingüe (EN/ES)** con el interruptor 🌐 arriba a la izquierda, hay un **Makefile** para construir y correr la imagen Docker (`make build && make run`) y los cambios importantes se registran en `CHANGELOG.md`.
 

@@ -1,10 +1,10 @@
 {
   "boot": {
-    "startupMs": 159,
+    "startupMs": 312,
     "log": [
       "Using initial configuration",
       "Dashboard auth route ready",
-      "Pixel Office v3 on http://0.0.0.0:19031",
+      "Pixel Startup v3 — Pixel Office environment on http://0.0.0.0:19031",
       "Active agents: Curator, Charon, Wardog, Fixer, Tailor, Ghostface",
       "LiteLLM API: http://127.0.0.1:9 (model: glm-5.3-flash)",
       ""
@@ -269,7 +269,7 @@
           },
           "runtime": "string",
           "sessions": {
-            "array": 1,
+            "array": 2,
             "of": {
               "pid": "number",
               "session_id": "string",

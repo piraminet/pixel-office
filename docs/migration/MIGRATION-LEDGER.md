@@ -102,6 +102,57 @@ Statuses recorded as: PASS / FAIL / BLOCKED / SKIP / NOT RUN per workflow MVP-01
 
 ---
 
+## G−1 — Project identity and strategic reorientation
+
+**Objective:** transition platform identity from Pixel Office to Pixel Startup; establish naming conventions; preserve environment name, assets, history, licensing, deployment compatibility and operational data. Executed 2026-11-20 before continuing the gauntlet.
+
+**Naming conventions (binding for all subsequent gates):**
+
+| Identity | Value |
+|---|---|
+| Product / platform | Pixel Startup |
+| Repository name | `pixel-startup` (remote GitHub rename = owner authorization REQUIRED, deferred; local checkout dir unchanged) |
+| npm package | `pixel-startup` (was `pixel`) |
+| Python package (G4+) | `pixel_startup` |
+| CLI entry point (G19+) | `pixel-startup` |
+| Visual environment | Pixel Office (in-app visual, sprites, rooms, characters) |
+| Executive agent | Charon (OpenClaw harness) |
+
+**Reference inventory & dispositions** (grep `pixel.office|pixel office|pixeloffice` across repo, excluding node_modules and historical migration docs):
+
+| Reference | Disposition |
+|---|---|
+| `README.md` title + ES summary | **Renamed** to Pixel Startup with Pixel Office retained as visual environment and attribution note |
+| `SKILL.md` frontmatter `name: pixel-office`, headings | **Renamed** to `pixel-startup` (no consumer references this skill name in-repo) |
+| `CHANGELOG.md` scope line + new Unreleased entry | **Renamed** + reorientation recorded |
+| `package.json` + lockfile `name` | **Renamed** `pixel` → `pixel-startup` (private package, no URL/API consumers) |
+| `Makefile` IMAGE `pixel-office` → `pixel-startup` | **Renamed** build tag (local artifact; legacy local image left in place — no volume/data binding) |
+| `.env.example` header | **Renamed** with environment clarification |
+| `server.js` boot log "Pixel Office v3" | **Renamed** log string ("Pixel Startup v3 — Pixel Office environment") |
+| `index.html` / `dashboard.html` `<title>` | Kept Pixel Office as primary (visual component) with platform suffix appended |
+| `server.js` AI persona "…of Nocturnal Inc Pixel Office" | **Retained** (in-world office language, not product branding) |
+| localStorage keys `pixel_office_*`, `pixelOfficeRooms` + export filename `pixel_office_config.json` | **Retained** — renaming would orphan saved dashboards (data loss, req 8) |
+| Data files `pixel_actions.jsonl`, `pixel-config.json`, `pixel_collision.json`, `pixel_rooms.json`, `agents.json`, `agent_<id>_message.txt`, `pep_arrived_*` | **Retained** — persistent storage formats; no rename without migration plan (req 8) |
+| `pixel_session` cookie | **Retained** — mid-flight browser sessions would drop (req 9) |
+| `vault.js` `deviceIdentifier=pixel-office-1` | **Retained** — Vaultwarden device trust identity (req 8) |
+| `PIXEL_*` env namespace (`PIXEL_DATA_DIR`, `PIXEL_SESSION_SECRET`, `PIXEL_API_TOKEN`, …) | **Retained** — bash scripts, Docker config and operators depend on them (req 7/9) |
+| `docs/media/pixel-office-*.jpg` filenames | **Retained** (README image links unchanged) |
+| `tests/api-baseline.js` synthetic password string | **Retained** (test fixture value only) |
+| `docs/migration/G0/G1 docs` (written at gate time) | **Retained as historical record** — accurate for their gates; this section supersedes naming going forward |
+| Remote repository name, service URLs, ports (19000) | **Unchanged** (req 9/10) |
+
+**Deprecated naming conventions:** "Pixel Office" as the *platform* name (docs/npm/image tags) is deprecated as of this gate; valid only as the visual-environment name and inside retained identifiers above. New Python artifacts must use `pixel_startup` / `pixel-startup` exclusively.
+
+**Backward compatibility requirements:** existing `.env` files need no changes; script invocations unchanged; saved dashboard exports still import; the legacy `pixel-office` Docker image keeps running its last built config; all 36 API routes keep their paths.
+
+**Rollback considerations:** single commit revert restores the former identity in files (no data migrations occurred; nothing at rest changed). Lockfile name-only diff reverts identically. No remote/config/volume state touched.
+
+**Acceptance evidence:** reference grep re-run post-edit → product-identity references updated; retained-identifier list matches grep (localStorage keys, cookie, deviceIdentifier, data files). `npm test` re-run after rename: presence 11 + baseline 44 = **55 PASS / 0 FAIL** (existing functionality intact). Boot smoke via baseline suite startup. Characters/sprites/credits/licensing untouched (CREDITS.md unchanged). No remote operations performed.
+
+**Verdict: PASS.** Commit: `b848824`. Limitations: GitHub remote retains name `pixel-office` pending explicit owner authorization; local directory name unchanged. Python naming (`pixel_startup` package, `pixel-startup` CLI) is *established by this record* and applies when G4/G19 create those artifacts — no placeholder code was written for components that do not yet exist.
+
+---
+
 ## Gates G3-G20 — registered next
 
 ### G3 — Language-neutral component contracts (criteria registered 2026-11-20, NOT RUN)

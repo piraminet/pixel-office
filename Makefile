@@ -1,5 +1,7 @@
-# Pixel Office — build & run
-IMAGE   := pixel-office
+# Pixel Startup — build & run (visual environment: Pixel Office)
+IMAGE   := pixel-startup
+# Legacy image tag `pixel-office` may still exist locally from earlier builds; it is
+# untouched (re-tag or `make clean` to retire it after Python cutover).
 PORT    ?= 19000
 ENVFILE := $(wildcard .env)
 

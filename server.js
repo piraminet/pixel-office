@@ -981,7 +981,7 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Pixel Office v3 on http://0.0.0.0:${PORT}`);
+  console.log(`Pixel Startup v3 — Pixel Office environment on http://0.0.0.0:${PORT}`);
   console.log('Active agents:', config.agents.filter(a => a.active).map(a => a.name).join(', '));
   console.log(`LiteLLM API: ${LITELLM_API_URL} (model: ${LITELLM_MODEL})`);
 });
