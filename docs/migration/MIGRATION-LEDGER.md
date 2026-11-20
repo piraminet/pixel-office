@@ -149,7 +149,7 @@ Statuses recorded as: PASS / FAIL / BLOCKED / SKIP / NOT RUN per workflow MVP-01
 
 **Acceptance evidence:** reference grep re-run post-edit → product-identity references updated; retained-identifier list matches grep (localStorage keys, cookie, deviceIdentifier, data files). `npm test` re-run after rename: presence 11 + baseline 44 = **55 PASS / 0 FAIL** (existing functionality intact). Boot smoke via baseline suite startup. Characters/sprites/credits/licensing untouched (CREDITS.md unchanged). No remote operations performed.
 
-**Verdict: PASS.** Commit: `9fd9108`. Limitations: GitHub remote retains name `pixel-office` pending explicit owner authorization; local directory name unchanged. Python naming (`pixel_startup` package, `pixel-startup` CLI) is established by this record and applies when G4/G19 create those artifacts — no placeholder code was written for components that do not yet exist. Python naming (`pixel_startup` package, `pixel-startup` CLI) is *established by this record* and applies when G4/G19 create those artifacts — no placeholder code was written for components that do not yet exist.
+**Verdict: PASS.** Commit: `9fd9108`. Limitations: GitHub remote retains name `pixel-office` pending explicit owner authorization; local directory name unchanged. Python naming (`pixel_startup` package, `pixel-startup` CLI) is established by this record and applies when G4/G19 create those artifacts — no placeholder code was written for components that do not yet exist.
 
 ---
 
