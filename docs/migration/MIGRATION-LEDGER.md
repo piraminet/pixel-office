@@ -29,7 +29,7 @@ Evidence convention: every gate cites executed commands + artifacts. Mock succes
 - Drift items: 4 recorded (§G0 inventory §3, integration-inventory §Reconciliation).
 - npm test baseline: 11 PASS / 0 FAIL (2026-11-20).
 
-**Verdict: PASS.** Files: docs/migration/{G0-repository-inventory,api-inventory,integration-inventory,security-findings}.md + this ledger. Commit: (G0 commit id recorded at commit time). Limitations: email/vault/CRM availability unverified from this host (missing creds/keys) — recorded as blockers, not failures. Remaining: none for G0.
+**Verdict: PASS.** Files: docs/migration/{G0-repository-inventory,api-inventory,integration-inventory,security-findings}.md + this ledger. Commit: `96f3ed5`. Limitations: email/vault/CRM availability unverified from this host (missing creds/keys) — recorded as blockers, not failures. Remaining: none for G0.
 
 **Security implications:** findings S-01..S-04 are pre-deployment blockers; remediation staged in G2 before any new integration.
 **Rollback implications:** baseline pin commit is additive; reverting G0 docs = revert docs commits only.
@@ -48,6 +48,17 @@ Acceptance criteria:
 - C1.3 Restart recovery behavior recorded (agents.json reload, in-memory command loss acknowledged).
 - C1.4 Baseline performance snapshot (startup time, RSS) recorded.
 - C1.5 Unsafe behaviors classified separately (security-findings S-*) and NOT preserved as contract.
+
+**Evidence (2026-11-20, migration/python-mvp):**
+- Baseline suite `node tests/api-baseline.js`: **34 assertions, 0 failures** (`npm test` wiring updated: presence suite + baseline run together).
+- Fixtures committed: `docs/migration/fixtures/g1-probes.json` (35 probed routes with status + sanitized response shapes), `g1-recovery.json` (config persists; commands do not).
+- Browser walk (browser automation, screenshots): office render (6 client chars / 3 rooms / collision 25), tabs (log 12 filters, email 11 chips), dashboard login reject/accept, i18n toggle — details + known defects D-01..D-06 in `G1-baseline.md`.
+- Per-startup RSS snapshot: ≈70 MiB idle, boot 314 ms (node v26).
+- Real-baseline surprises corrected in the probe (documented, not trimmed): collision 500-on-fresh, 11 email accounts, 200-with-error degradation, Ghostface reinsertion on restart.
+
+**Verdict: PASS.** Commit: (see G1 commit). Limitations: live LLM/email/vault behaviors not part of the deterministic suite; live-path evidence held in session records + integration-inventory. Frontend walk covers office + dashboard + log/email/contacts tabs; briefing button exercised live in earlier session runs only.
+
+Now G2 (criteria above) proceeds on this branch.
 
 ---
 

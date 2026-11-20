@@ -1,0 +1,450 @@
+{
+  "boot": {
+    "startupMs": 315,
+    "log": [
+      "Using initial configuration",
+      "Dashboard auth route ready",
+      "Pixel Office v3 on http://0.0.0.0:19031",
+      "Active agents: Curator, Charon, Wardog, Fixer, Tailor, Ghostface",
+      "LiteLLM API: http://127.0.0.1:9 (model: glm-5.3-flash)",
+      ""
+    ]
+  },
+  "probes": [
+    {
+      "name": "GET /api/config",
+      "method": "GET",
+      "path": "/api/config",
+      "status": 200,
+      "bodyShape": {
+        "agents": {
+          "array": 6,
+          "of": {
+            "active": "boolean",
+            "color": "number",
+            "id": "number",
+            "name": "string",
+            "role": "string",
+            "room": "string",
+            "state": "string",
+            "x": "number",
+            "y": "number"
+          }
+        },
+        "rooms": {
+          "array": 3,
+          "of": {
+            "name": "string",
+            "x": "number",
+            "y": "number"
+          }
+        }
+      }
+    },
+    {
+      "name": "GET /api/rooms",
+      "method": "GET",
+      "path": "/api/rooms",
+      "status": 200,
+      "bodyShape": {
+        "array": 3,
+        "of": {
+          "name": "string",
+          "x": "number",
+          "y": "number"
+        }
+      }
+    },
+    {
+      "name": "GET /api/collision (fresh install)",
+      "method": "GET",
+      "path": "/api/collision",
+      "status": 500,
+      "bodyShape": {
+        "error": "string"
+      }
+    },
+    {
+      "name": "GET /api/messages",
+      "method": "GET",
+      "path": "/api/messages",
+      "status": 200,
+      "bodyShape": {
+        "0": "string",
+        "1": "string",
+        "2": "string",
+        "3": "string",
+        "4": "string",
+        "5": "string"
+      }
+    },
+    {
+      "name": "GET /api/log (empty)",
+      "method": "GET",
+      "path": "/api/log",
+      "status": 200,
+      "bodyShape": {
+        "array": 0,
+        "of": null
+      }
+    },
+    {
+      "name": "POST /api/agent/0/move",
+      "method": "POST",
+      "path": "/api/agent/0/move",
+      "status": 200,
+      "bodyShape": {
+        "agent": {
+          "active": "boolean",
+          "color": "number",
+          "id": "number",
+          "name": "string",
+          "role": "string",
+          "room": "string",
+          "state": "string",
+          "x": "number",
+          "y": "number"
+        },
+        "success": "boolean"
+      }
+    },
+    {
+      "name": "POST /api/agent/99/move",
+      "method": "POST",
+      "path": "/api/agent/99/move",
+      "status": 404,
+      "bodyShape": {
+        "error": "string"
+      }
+    },
+    {
+      "name": "POST /api/agent/0/command",
+      "method": "POST",
+      "path": "/api/agent/0/command",
+      "status": 200,
+      "bodyShape": {
+        "success": "boolean"
+      }
+    },
+    {
+      "name": "GET /api/agent/0/command (consume)",
+      "method": "GET",
+      "path": "/api/agent/0/command",
+      "status": 200,
+      "bodyShape": {
+        "type": "string",
+        "x": "number",
+        "y": "number"
+      }
+    },
+    {
+      "name": "GET /api/agent/0/command (consumed)",
+      "method": "GET",
+      "path": "/api/agent/0/command",
+      "status": 200,
+      "bodyShape": "null"
+    },
+    {
+      "name": "GET /api/ai/status (offline)",
+      "method": "GET",
+      "path": "/api/ai/status",
+      "status": 200,
+      "bodyShape": {
+        "available": "boolean",
+        "error": "string",
+        "model": "string",
+        "url": "string"
+      }
+    },
+    {
+      "name": "POST /api/ai/chat (offline)",
+      "method": "POST",
+      "path": "/api/ai/chat",
+      "status": 500,
+      "bodyShape": {
+        "error": "string"
+      }
+    },
+    {
+      "name": "POST /api/auth/login wrong",
+      "method": "POST",
+      "path": "/api/auth/login",
+      "status": 401,
+      "bodyShape": {
+        "success": "boolean"
+      }
+    },
+    {
+      "name": "POST /api/auth/login correct",
+      "method": "POST",
+      "path": "/api/auth/login",
+      "status": 200,
+      "bodyShape": {
+        "success": "boolean"
+      }
+    },
+    {
+      "name": "POST /api/config (mutation w/o auth)",
+      "method": "POST",
+      "path": "/api/config",
+      "status": 200,
+      "bodyShape": {
+        "config": {
+          "agents": {
+            "array": 0,
+            "of": null
+          },
+          "rooms": {
+            "array": 0,
+            "of": null
+          }
+        },
+        "success": "boolean"
+      }
+    },
+    {
+      "name": "GET /api/presence",
+      "method": "GET",
+      "path": "/api/presence",
+      "status": 200,
+      "bodyShape": {
+        "agents": {
+          "array": 2,
+          "of": {
+            "detail": "string",
+            "key": "string",
+            "name": "string",
+            "runtime": "string",
+            "surface": "string"
+          }
+        },
+        "checkedAt": "string",
+        "hermes": {
+          "gateway": {
+            "active_agents": "number",
+            "pid": "number",
+            "state": "string"
+          },
+          "home": "string",
+          "online": "boolean",
+          "platforms": {
+            "array": 1,
+            "of": "string"
+          },
+          "runtime": "string",
+          "sessions": {
+            "array": 1,
+            "of": {
+              "pid": "number",
+              "session_id": "string",
+              "started_at": "number",
+              "surface": "string"
+            }
+          }
+        },
+        "openclaw": {
+          "auth": "string",
+          "error": "string",
+          "online": "boolean",
+          "runtime": "string",
+          "url": "string"
+        }
+      }
+    },
+    {
+      "name": "GET /api/briefing (offline integrations)",
+      "method": "GET",
+      "path": "/api/briefing",
+      "status": 200,
+      "bodyShape": {
+        "agents": {
+          "array": 0,
+          "of": null
+        },
+        "ai": {
+          "available": "boolean",
+          "error": "string",
+          "model": "string"
+        },
+        "contacts": {
+          "lastSync": "null",
+          "organizations": "number",
+          "total": "number"
+        },
+        "email": {
+          "accounts": {
+            "array": 11,
+            "of": {
+              "category": "string",
+              "configured": "boolean",
+              "email": "string",
+              "icon": "string",
+              "id": "string",
+              "name": "string",
+              "unread": "null"
+            }
+          },
+          "totalAccounts": "number",
+          "totalConfigured": "number",
+          "totalUnread": "number"
+        },
+        "organization": "string",
+        "timestamp": "string",
+        "vault": {
+          "baseUrl": "string",
+          "configured": "boolean",
+          "orgConfigured": "boolean",
+          "tokenCached": "boolean"
+        }
+      }
+    },
+    {
+      "name": "GET /api/email/accounts",
+      "method": "GET",
+      "path": "/api/email/accounts",
+      "status": 200,
+      "bodyShape": {
+        "accounts": {
+          "array": 11,
+          "of": {
+            "category": "string",
+            "color": "string",
+            "configured": "boolean",
+            "email": "string",
+            "icon": "string",
+            "id": "string",
+            "name": "string"
+          }
+        },
+        "categories": {
+          "array": 6,
+          "of": {
+            "color": "string",
+            "icon": "string",
+            "id": "string",
+            "name": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "GET /api/email/inbox (offline)",
+      "method": "GET",
+      "path": "/api/email/inbox?limit=1&account=jb",
+      "status": 200,
+      "bodyShape": {
+        "count": "number",
+        "emails": {
+          "array": 0,
+          "of": null
+        },
+        "error": "string"
+      }
+    },
+    {
+      "name": "GET /api/vault/status (unset creds)",
+      "method": "GET",
+      "path": "/api/vault/status",
+      "status": 200,
+      "bodyShape": {
+        "baseUrl": "string",
+        "configured": "boolean",
+        "orgConfigured": "boolean",
+        "tokenCached": "boolean"
+      }
+    },
+    {
+      "name": "GET /api/vault/item/synthetic-id (unset creds)",
+      "method": "GET",
+      "path": "/api/vault/item/synthetic-id",
+      "status": 200,
+      "bodyShape": {
+        "error": "string"
+      }
+    },
+    {
+      "name": "GET /api/sync/status",
+      "method": "GET",
+      "path": "/api/sync/status",
+      "status": 200,
+      "bodyShape": {
+        "crm": {
+          "contacts": "number",
+          "organizations": "number",
+          "withEmail": "number"
+        },
+        "lastSync": "null",
+        "mappings": {
+          "nextcloud": "number",
+          "odoo": "number",
+          "openproject": "number",
+          "paperless": "number",
+          "total": "number"
+        },
+        "organizations": "number"
+      }
+    },
+    {
+      "name": "GET /api/contacts/search?q=test",
+      "method": "GET",
+      "path": "/api/contacts/search?q=test",
+      "status": 200,
+      "bodyShape": {
+        "count": "number",
+        "results": {
+          "array": 0,
+          "of": null
+        }
+      }
+    },
+    {
+      "name": "static /server.js",
+      "method": "GET",
+      "path": "/server.js",
+      "status": 200,
+      "bodyShape": "string"
+    },
+    {
+      "name": "static /.env",
+      "method": "GET",
+      "path": "/.env",
+      "status": 200,
+      "bodyShape": "string"
+    },
+    {
+      "name": "static /package.json",
+      "method": "GET",
+      "path": "/package.json",
+      "status": 200,
+      "bodyShape": {
+        "author": "string",
+        "dependencies": {
+          "dotenv": "string",
+          "express": "string",
+          "ssh2": "string"
+        },
+        "description": "string",
+        "keywords": {
+          "array": 0,
+          "of": null
+        },
+        "license": "string",
+        "main": "string",
+        "name": "string",
+        "scripts": {
+          "start": "string",
+          "test": "string"
+        },
+        "type": "string",
+        "version": "string"
+      }
+    },
+    {
+      "name": "unknown /api/nope",
+      "method": "GET",
+      "path": "/api/nope",
+      "status": 200,
+      "bodyShape": "string"
+    }
+  ]
+}
