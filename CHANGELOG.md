@@ -13,13 +13,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 - **`char_2.png` (Charon) was a 631-byte stub** since 14fb96e; the intact 5,221-byte sheet was recovered from git history (075e1f1) and kept as `char_2_original.png`.
 
 ### Added
+- **Python migration gauntlet (G7–G9):** OpenClaw adapter (`/v1/models` only; undocumented ops explicit `supported:false`), Hermes adapter (live filesystem interface — gateway/session/platform discovery, evidence-gated promotion), employee/character alignment (SQLite schema v2: binding-proof chain with storage-layer impersonation guard, CAS lifecycle machine, boot-time non-destructive roster alignment; Charon's OpenClaw binding stays pending the gateway). Details: `docs/migration/MIGRATION-LEDGER.md`.
 - **Custom Charon sprite**: hooded figure with cyan glow accents — deterministic palette swap of the restored sheet (`tools/generate-assets.py`), preserving the 7x3/16x32 frame geometry the canvas slices.
 - **Real pixel-art office placeholder** replacing the blank-grid background: 640x800 (true canvas size — the old 960x720 asset overfilled and clipped), drawn from the default collision map (brick walls, desks/shelves/counter with cyan LED strip, doors, chairs, plants, wall lamps, room tints aligned to Reception/Workstations/Archives anchors). Regenerate with `tools/generate-assets.py` after editing the layout.
 
 ### Added
 - **First-class agent runtimes**: `GET /api/presence` with Hermes Agent (session/gateway state under `~/.hermes`) and OpenClaw (gateway HTTP probe) adapters in `integrations.js`; live status chips in the office overlay.
 - Bilingual UI (English/Spanish) with a persisted language toggle (`i18n` block in `index.html`).
-- `Makefile` for Docker build/run/test lifecycle plus `.dockerignore` (keeps `.env`, `data/`, `node_modules` out of the image).
+- `Makefile` for Docker build/run/test lifecycle plus `.dockerignore` (keeps `.env`, `data/`, `node_modules` out of the image); `make push-image` publishes to `ghcr.io/bageera/pixel-startup:latest` for build hosts.
 - `npm test` now runs the presence-integration, API-baseline (44 asserts) and security regression suites.
 
 ### Security

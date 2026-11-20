@@ -159,6 +159,7 @@ See [CREDITS.md](CREDITS.md) for a handy table you can keep updated.
 ## 📦 Deploy notes
 
 - Makefile shortcuts: `make build` (Docker image), `make run` (container with `data/` mounted and `.env` injected), `make test`, `make logs`, `make clean`. The image never bakes `.env`, `data/` or `node_modules` (see `.dockerignore`). Runtime presence reflects the host from inside the container: mount the runtimes you want visible, e.g. add `-v $(HOME)/.hermes:/root/.hermes:ro` to `make run`, and point `OPENCLAW_GATEWAY_URL` at a reachable gateway.
+- Build hosts: `make push-image` publishes the image to `ghcr.io/bageera/pixel-startup:latest`, then pull with `docker pull ghcr.io/bageera/pixel-startup:latest` (the GHCR package is private — the pulling host needs `docker login ghcr.io` first).
 - Local demo: `npm start`.
 - Releases: version lives in `package.json` (SemVer, mirrored in [CHANGELOG.md](CHANGELOG.md)); bump with `npm version patch|minor|major`, then `make tag` creates and pushes annotated `vX.Y.Z` from that version.
 - Remote share: e.g. `cloudflared tunnel --url http://127.0.0.1:19000` (or any reverse proxy you prefer).

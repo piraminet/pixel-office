@@ -7,7 +7,7 @@ ENVFILE := $(wildcard .env)
 VERSION := $(shell node -p "require('./package.json').version")
 
 .DEFAULT_GOAL := help
-.PHONY: help install test build run stop logs clean tag contracts python-setup python-test
+.PHONY: help install test build push-image run stop logs clean tag contracts python-setup python-test
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  %-10s %s\n", $$1, $$2}'
@@ -20,6 +20,10 @@ test: ## Run integration/presence self-checks
 
 build: ## Build the Docker image
 	docker build -t $(IMAGE):latest .
+
+push-image: ## Push the built image to GHCR (build hosts pull ghcr.io/bageera/pixel-startup:latest; pull side needs docker login ghcr.io)
+	docker tag $(IMAGE):latest ghcr.io/bageera/$(IMAGE):latest
+	docker push ghcr.io/bageera/$(IMAGE):latest
 
 run: ## Run the container (PORT from host side, data/ mounted, .env if present)
 	docker run -d --rm --name $(IMAGE) \
