@@ -28,13 +28,16 @@ const pidAlive = (pid) => {
 
 // Container consumers can't verify host PIDs (separate PID namespace), so they
 // opt into HERMES_PRESENCE_TRUST_FILES=1: online-state + liveness come from the
-// files themselves, bounded by mtime freshness (active_sessions.json and
-// gateway_state.json are rewritten by their owners during operation).
+// files themselves, bounded by mtime freshness. gateway_state.json is
+// heartbeat-rewritten by the gateway daemon (short window); active_sessions.json
+// is event-driven and only rewritten on lease changes (long window — stale
+// sessions are bounded by Hermes' own lease GC, not the writer's clock).
 const TRUST_FILE_MODE = () => process.env.HERMES_PRESENCE_TRUST_FILES === '1';
-const FRESHNESS_MS = 5 * 60 * 1000;
-const fileFresh = (filePath) => {
+const GATEWAY_FRESHNESS_MS = 5 * 60 * 1000;
+const SESSIONS_FRESHNESS_MS = 30 * 60 * 1000;
+const fileFresh = (filePath, freshnessMs) => {
   try {
-    return Date.now() - fs.statSync(filePath).mtimeMs < FRESHNESS_MS;
+    return Date.now() - fs.statSync(filePath).mtimeMs < freshnessMs;
   } catch (e) {
     return false;
   }
@@ -52,7 +55,7 @@ const hermesPresence = () => {
 
   const entries = (sessionsFile && Array.isArray(sessionsFile.entries)) ? sessionsFile.entries : [];
   const live = entries
-    .filter(s => TRUST_FILE_MODE() ? fileFresh(sessionsPath) : pidAlive(s.pid))
+    .filter(s => TRUST_FILE_MODE() ? fileFresh(sessionsPath, SESSIONS_FRESHNESS_MS) : pidAlive(s.pid))
     .map(s => ({
       session_id: s.session_id,
       surface: s.surface,
@@ -63,7 +66,7 @@ const hermesPresence = () => {
   const gatewayState = gatewayFile ? gatewayFile.gateway_state : null;
   const gatewayPid = gatewayFile ? gatewayFile.pid : null;
   const gateway = gatewayState === 'running' &&
-    (TRUST_FILE_MODE() ? fileFresh(gatewayPath) : pidAlive(gatewayPid));
+    (TRUST_FILE_MODE() ? fileFresh(gatewayPath, GATEWAY_FRESHNESS_MS) : pidAlive(gatewayPid));
 
   const platforms = Object.entries((gatewayFile && gatewayFile.platforms) || {})
     .filter(([, p]) => p && p.state === 'connected')
