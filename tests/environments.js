@@ -127,12 +127,63 @@ let child = null;
 
 (async () => {
   await runSuite();
+  await runStaticChecks();
 
   const packsCleaned = cleanupPackDirs();
   check('cleanup: synthetic packs removed from repo assets', packsCleaned);
   await stopServer();
-  console.log(`\n${passed} passed, ${failed} failed (G22 B1 environments)`);
+  console.log(`\n${passed} passed, ${failed} failed (G22 B1/B3 environments)`);
   process.exit(failed ? 1 : 0);
+
+  // ---- static: four built-in isometric launch packs validate ----
+  async function runStaticChecks() {
+    const { readManifest } = require('../environments.js');
+    const builtin = [
+      ['continental', 'Continental'],
+      ['mechanic-shop', 'Mechanic Shop'],
+      ['pirate-ship', 'Pirate Ship'],
+      ['lost-boys-treehouse', 'Lost Boys Treehouse'],
+    ];
+    const loaded = {};
+    const results = await Promise.all(builtin.map(async ([id]) => {
+      const r = await readManifest('assets/environments', id);
+      loaded[id] = r;
+      return { id, ok: !!r.manifest && r.warnings.length === 0 };
+    }));
+    check('all four launch packs readManifest clean (no warnings)',
+      results.every(x => x.ok),
+      results.map(x => `${x.id}:${x.ok ? 'ok' : 'FAIL'}`).join('/'));
+
+    for (const [id, name] of builtin) {
+      const m = loaded[id].manifest;
+      if (!m) continue;
+      check(`[${id}] name/schema/grid 18x22 + isometric presentation`,
+        m.id === id && m.name === name && m.schema === 1 &&
+        m.grid.cols === 18 && m.grid.rows === 22 &&
+        m.presentation.projection === 'isometric');
+      check(`[${id}] 7 rooms + all placement slots + 16 workstations + 4 interactions`,
+        m.rooms.length === 7 &&
+        m.rooms.some(r => r.slot === 'reception') &&
+        m.rooms.some(r => r.slot === 'workstations') &&
+        m.rooms.some(r => r.slot === 'archives') &&
+        m.workstations.length === 16 && m.interactions.length === 4);
+      check(`[${id}] spawn walkable + furniture tiles solid + unique`,
+        !!(m.collision[m.spawn[1]] || [])[m.spawn[0]] === false ||
+        m.collision[m.spawn[1]][m.spawn[0]] === 0);
+      const tiles = new Set();
+      let solidOk = true;
+      for (const f of m.furniture) {
+        for (const t of f.tiles) {
+          const key = `${t.x},${t.y}`;
+          if (tiles.has(key) || m.collision[t.y][t.x] !== 1) solidOk = false;
+          tiles.add(key);
+        }
+      }
+      check(`[${id}] furniture unique and on solid tiles`, solidOk, `${m.furniture.length} entries`);
+      check(`[${id}] background asset exists on disk`,
+        fs.existsSync(path.join(__dirname, '..', 'assets', 'environments', id, 'background.png')));
+    }
+  }
 
   // ---- suite ----
   async function runSuite() {
@@ -149,8 +200,13 @@ let child = null;
     check('default environment is continental', r.status === 200 && list.default === 'continental');
     check('active default on fresh install (first deployment)', list.active === 'continental');
     check('continental pack listed and available',
-      list.count === 1 && list.environments[0].id === 'continental' && list.environments[0].available === true);
+      list.environments.some(e => e.id === 'continental' && e.available === true));
+    r = await req('GET', '/api/environments');
     check('invalid pack (schema 2) not listed', !list.environments.some(e => e.id === BAD_PACK_ID));
+    check('server lists all four launch packs on boot',
+      r.status === 200 && (r.parsed.environments || []).filter(e =>
+        ['continental', 'mechanic-shop', 'pirate-ship', 'lost-boys-treehouse'].includes(e.id)
+        && e.available === true).length === 4);
 
     r = await req('GET', '/api/environment');
     check('GET /api/environment → manifest of active env',
@@ -188,7 +244,7 @@ let child = null;
     writeTestPack(false);
     r = await req('GET', '/api/environments');
     check('second pack listed with availability flag',
-      r.status === 200 && r.parsed.count === 2 &&
+      r.status === 200 && r.parsed.count === 5 &&
       r.parsed.environments.some(e => e.id === TEST_PACK_ID && e.available === false));
 
     r = await req('POST', '/api/environment', {}, AUTH);
@@ -202,6 +258,21 @@ let child = null;
     check('active env switched (GET reflects selection)', r.status === 200 && r.parsed.id === TEST_PACK_ID);
     check('selection persisted to data/environment.json',
       (safeJSON(fs.readFileSync(path.join(DATA_DIR, 'environment.json'), 'utf8')) || {}).id === TEST_PACK_ID);
+
+    // Built-in non-default pack: gating serves manifest-baked maps.
+    r = await req('POST', '/api/environment', { id: 'mechanic-shop' }, AUTH);
+    check('switch to built-in mechanic-shop → 200', r.status === 200 && r.parsed.id === 'mechanic-shop');
+    r = await req('GET', '/api/collision');
+    check('GET /api/collision (mechanic-shop) → manifest collision 18 cols', r.status === 200 &&
+      Array.isArray(r.parsed) && r.parsed.length === 22 && r.parsed.every(row => row.length === 18));
+    r = await req('GET', '/api/rooms');
+    check('GET /api/rooms (mechanic-shop) → Service Entry quick format',
+      r.status === 200 && Array.isArray(r.parsed) && r.parsed.some(x => x.id === 'reception' && x.name === 'Service Entry'));
+    r = await req('GET', '/api/environment');
+    check('mechanic-shop roster/config independent of selection',
+      r.status === 200 && r.parsed.id === 'mechanic-shop');
+    r = await req('POST', '/api/environment', { id: TEST_PACK_ID }, AUTH);
+    check('switch back to synthetic pack → 200', r.status === 200);
 
     r = await req('GET', '/api/collision');
     check('GET /api/collision (non-default) → manifest collision (10 rows)', r.status === 200 &&
@@ -233,7 +304,8 @@ let child = null;
     fs.rmSync(TEST_PACK_DIR, { recursive: true, force: true });
     await startServer();
     r = await req('GET', '/api/environments');
-    check('deleted selected pack: registry has no selection pack', r.status === 200 && r.parsed.count === 1);
+    check('deleted selected pack: registry keeps the four launch packs',
+      r.status === 200 && (r.parsed.environments || []).length === 4);
     r = await req('GET', '/api/environment');
     check('deleted selected pack: graceful fallback to continental', r.status === 200 && r.parsed.id === 'continental');
     r = await req('POST', '/api/environment', { id: TEST_PACK_ID }, AUTH);

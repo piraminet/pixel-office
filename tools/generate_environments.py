@@ -35,7 +35,7 @@ ORIGIN_X, ORIGIN_Y = 338, 320
 FURNITURE_H = {
     'desk': 48, 'console': 42, 'counter': 52, 'bar': 52, 'crate': 38,
     'barrel': 32, 'planter': 32, 'lantern': 42, 'helmsman': 58,
-    'perch': 42, 'rope': 26, 'rudder': 60, 'sign': 56, 'partition': 96,
+    'perch': 42, 'rope': 26, 'rudder': 60, 'sign': 56, 'partition': 72,
 }
 TALL_KINDS = {'wall', 'shelf', 'elevator', 'medallion', 'arch'}
 FURNITURE_KINDS = sorted(set(FURNITURE_H) | TALL_KINDS | {'plant', 'tree'})
@@ -80,7 +80,7 @@ PALETTE = {
         'floor': (118, 116, 122), 'floor_inset': (98, 96, 102),
         'floor_border': (232, 130, 30),
         'top': (64, 64, 68), 'left': (94, 94, 100), 'right': (42, 42, 46),
-        'trim': (232, 130, 30), 'wall_dark': (40, 43, 56), 'accent': (240, 190, 40),
+        'trim': (232, 130, 30), 'wall_dark': (54, 50, 44), 'accent': (240, 190, 40),
         'desk_top': (108, 110, 116), 'desk_side': (68, 70, 76),
         'chair': (200, 60, 40), 'chair_frame': (58, 58, 62),
         'leaf': (96, 110, 84), 'leaf2': (70, 82, 62), 'wood': (92, 62, 40),
@@ -93,7 +93,7 @@ PALETTE = {
         'floor': (176, 136, 88), 'floor_inset': (148, 112, 72),
         'floor_border': (94, 62, 40),
         'top': (104, 74, 48), 'left': (140, 102, 66), 'right': (74, 52, 34),
-        'trim': (222, 190, 120), 'wall_dark': (40, 43, 56), 'accent': (60, 96, 150),
+        'trim': (222, 190, 120), 'wall_dark': (62, 46, 32), 'accent': (60, 96, 150),
         'desk_top': (120, 88, 56), 'desk_side': (84, 60, 40),
         'chair': (128, 92, 58), 'chair_frame': (70, 50, 34),
         'leaf': (40, 108, 74), 'leaf2': (30, 84, 58), 'wood': (110, 78, 50),
@@ -106,7 +106,7 @@ PALETTE = {
         'floor': (196, 168, 118), 'floor_inset': (170, 142, 98),
         'floor_border': (88, 132, 70),
         'top': (112, 84, 52), 'left': (148, 112, 68), 'right': (84, 62, 40),
-        'trim': (110, 150, 78), 'wall_dark': (40, 43, 56), 'accent': (86, 152, 210),
+        'trim': (110, 150, 78), 'wall_dark': (52, 54, 38), 'accent': (86, 152, 210),
         'desk_top': (128, 96, 60), 'desk_side': (92, 68, 44),
         'chair': (104, 128, 64), 'chair_frame': (66, 82, 44),
         'leaf': (62, 130, 74), 'leaf2': (44, 100, 58), 'wood': (124, 90, 55),
@@ -123,6 +123,19 @@ def _rect(c, x0, y0, x1, y1, v):
     for y in range(y0, y1 + 1):
         for x in range(x0, x1 + 1):
             c[y][x] = v
+
+
+def _base_grid():
+    """Border ring on an 18x22 grid + main entrance doors (bottom border)."""
+    c = [[0] * GRID_COLS for _ in range(GRID_ROWS)]
+    _rect(c, 0, 0, GRID_COLS - 1, 0, 1)
+    _rect(c, 0, GRID_ROWS - 1, GRID_COLS - 1, GRID_ROWS - 1, 1)
+    for y in range(GRID_ROWS):
+        c[y][0] = 1
+        c[y][GRID_COLS - 1] = 1
+    c[GRID_ROWS - 1][4] = 2
+    c[GRID_ROWS - 1][5] = 2
+    return c
 
 
 def continental_layout():
@@ -247,7 +260,360 @@ def continental_layout():
     return c, rooms, workstations, interactions, furniture, {'x': 4, 'y': 20}
 
 
-LAYOUTS = {'continental': continental_layout}
+def mechanic_layout():
+    """Industrial garage + engineering office on an 18x22 grid."""
+    c = _base_grid()
+    _rect(c, 1, 1, 16, 1, 1)
+    # parts racks hug the far wall
+    _rect(c, 9, 2, 14, 2, 1)
+    # archive shelving + tuck-in chairs
+    _rect(c, 2, 3, 4, 3, 1)
+    _rect(c, 13, 3, 15, 3, 1)
+    for x in (2, 3, 4, 13, 14, 15):
+        c[4][x] = 3
+    # workbench separating the office from the garage floor
+    _rect(c, 4, 7, 9, 7, 1)
+    for x in range(4, 10):
+        c[8][x] = 3
+    # chain-link partition into the vehicle bay
+    for y in (14, 15, 16):
+        c[y][9] = 1
+    # vehicle bay lift platform (the "car")
+    _rect(c, 12, 17, 15, 18, 1)
+    # engineering desk pods
+    _rect(c, 2, 11, 6, 11, 1)
+    for x in range(2, 7):
+        c[12][x] = 3
+    _rect(c, 2, 15, 6, 15, 1)
+    for x in range(2, 7):
+        c[16][x] = 3
+    # oil-drum cluster + crate stack on the garage wall
+    for y in (10, 11, 12):
+        c[y][16] = 1
+    _rect(c, 10, 20, 11, 20, 1)
+    # foreman table + chairs
+    _rect(c, 12, 13, 15, 13, 1)
+    for x in range(12, 16):
+        c[14][x] = 3
+    # waiting stools by the tool cage
+    for x in (3, 6, 12, 14):
+        c[10][x] = 3
+    # floor plants flanking the bay
+    c[6][15] = 1
+    c[16][1] = 1
+
+    rooms = [
+        {'id': 'reception', 'name': 'Service Entry', 'kind': 'reception',
+         'rect': [2, 6, 16, 10], 'anchor': [6, 9],
+         'color': '#d97f2a', 'label': 'Entry'},
+        {'id': 'workstations', 'name': 'Engineering Floor',
+         'kind': 'workstations', 'rect': [1, 11, 8, 17], 'anchor': [4, 12],
+         'color': '#8f9aa6', 'label': 'Engineering'},
+        {'id': 'archives', 'name': 'Parts Archive', 'kind': 'archives',
+         'rect': [1, 1, 16, 5], 'anchor': [8, 3],
+         'color': '#b0b8bd', 'label': 'Parts'},
+        {'id': 'vehicle-bay', 'name': 'Vehicle Bay', 'kind': 'lounge',
+         'rect': [10, 16, 17, 20], 'anchor': [13, 17],
+         'color': '#c2543a', 'label': 'Vehicle Bay'},
+        {'id': 'workshop', 'name': 'Workshop', 'kind': 'meeting',
+         'rect': [10, 11, 17, 14], 'anchor': [14, 13],
+         'color': '#d8a04a', 'label': 'Workshop'},
+        {'id': 'nook', 'name': 'Break Nook', 'kind': 'lounge',
+         'rect': [2, 9, 13, 10], 'anchor': [9, 10],
+         'color': '#7d9c7e', 'label': 'Break'},
+        {'id': 'entrance', 'name': 'Entrance', 'kind': 'entrance',
+         'rect': [3, 18, 6, 20], 'anchor': [4, 20],
+         'color': '#98a7b8', 'label': 'Entrance'},
+    ]
+    seat_faces = (
+        [(x, 12, 'up') for x in range(2, 7)]
+        + [(x, 16, 'up') for x in range(2, 7)]
+        + [(x, 8, 'up') for x in range(4, 10)]
+        + [(x, 14, 'up') for x in range(12, 16)]
+        + [(x, 4, 'down') for x in (2, 3, 4, 13, 14, 15)]
+        + [(x, 3, 'up') for x in range(9, 15)]
+        + [(x, 10, 'up') for x in (3, 6, 12, 14)]
+    )
+    workstations = [
+        {'id': f'desk-{i + 1:02d}', 'name': f'Seat {i + 1:02d}',
+         'tile': {'x': x, 'y': y}, 'face': face, 'action': 'working'}
+        for i, (x, y, face) in enumerate(seat_faces)
+    ]
+    interactions = [
+        {'id': 'spawn-doormat', 'name': 'Doormat', 'tile': {'x': 4, 'y': 20},
+         'action': 'idle'},
+        {'id': 'coffee-urn', 'name': 'Coffee Urn', 'tile': {'x': 1, 'y': 10},
+         'action': 'drinking'},
+        {'id': 'service-phone', 'name': 'Service Phone',
+         'tile': {'x': 10, 'y': 7}, 'action': 'phone'},
+        {'id': 'manual-stand', 'name': 'Manuals Table',
+         'tile': {'x': 8, 'y': 4}, 'action': 'reading'},
+    ]
+    furniture = (
+        [{'kind': 'shelf', 'tiles': [{'x': x, 'y': 1} for x in range(1, 9)]},
+         {'kind': 'shelf', 'tiles': [{'x': x, 'y': 2} for x in range(9, 15)]},
+         {'kind': 'counter', 'tiles': [{'x': x, 'y': 7} for x in range(4, 10)]},
+         {'kind': 'desk', 'tiles': [{'x': x, 'y': 3} for x in (2, 3, 4)]},
+         {'kind': 'desk', 'tiles': [{'x': x, 'y': 3} for x in (13, 14, 15)]},
+         {'kind': 'desk', 'tiles': [{'x': x, 'y': 13} for x in range(12, 16)]},
+         {'kind': 'desk', 'tiles': [{'x': x, 'y': 11} for x in range(2, 7)]},
+         {'kind': 'desk', 'tiles': [{'x': x, 'y': 15} for x in range(2, 7)]},
+         {'kind': 'crate', 'tiles': [{'x': 16, 'y': y} for y in (10, 11, 12)]},
+         {'kind': 'crate', 'tiles': [{'x': 10, 'y': 20}, {'x': 11, 'y': 20}]},
+         {'kind': 'crate', 'tiles': [{'x': x, 'y': y}
+                                     for y in (17, 18) for x in (12, 13, 14, 15)]},
+         {'kind': 'partition', 'tiles': [{'x': 9, 'y': y}
+                                         for y in (14, 15, 16)]},
+         {'kind': 'plant', 'tiles': [{'x': 15, 'y': 6}, {'x': 1, 'y': 16}]},
+         {'kind': 'elevator', 'tiles': [{'x': x, 'y': 0}
+                                        for x in (3, 4, 5, 12, 13, 14)]}]
+    )
+    return c, rooms, workstations, interactions, furniture, {'x': 4, 'y': 20}
+
+
+def pirate_layout():
+    """Timber-ship headquarters on an 18x22 grid."""
+    c = _base_grid()
+    _rect(c, 1, 1, 16, 1, 1)
+    # chart racks on the back wall
+    _rect(c, 9, 2, 13, 2, 1)
+    # map-hold tables + chairs
+    _rect(c, 2, 3, 4, 3, 1)
+    _rect(c, 13, 3, 15, 3, 1)
+    for x in (2, 3, 4, 13, 14, 15):
+        c[4][x] = 3
+    # galley counter across the mid hatchway
+    _rect(c, 4, 7, 9, 7, 1)
+    for x in range(4, 10):
+        c[8][x] = 3
+    # rudder housing splitting forecastle from cargo
+    for y in (14, 15, 16):
+        c[y][9] = 1
+    # cargo crates piled in the hold
+    _rect(c, 12, 17, 15, 18, 1)
+    # berth desk pods
+    _rect(c, 2, 11, 6, 11, 1)
+    for x in range(2, 7):
+        c[12][x] = 3
+    _rect(c, 2, 15, 6, 15, 1)
+    for x in range(2, 7):
+        c[16][x] = 3
+    # rum barrels along the ship's side
+    for y in (10, 11, 12):
+        c[y][16] = 1
+    # captain's table + chairs
+    _rect(c, 12, 13, 15, 13, 1)
+    for x in range(12, 16):
+        c[14][x] = 3
+    # hammocks / waiting spots
+    for x in (3, 6, 12, 14):
+        c[10][x] = 3
+    # helm wheel at the aft corner (solid)
+    c[19][12] = 1
+    # gangway lanterns
+    for x, y in ((1, 6), (15, 6), (1, 19), (13, 20)):
+        c[y][x] = 1
+    # rum barrels by the gangway
+    c[20][10] = 1
+    c[20][11] = 1
+
+    rooms = [
+        {'id': 'reception', 'name': 'Quarterdeck', 'kind': 'reception',
+         'rect': [2, 6, 16, 10], 'anchor': [6, 9],
+         'color': '#d8b04a', 'label': 'Quarterdeck'},
+        {'id': 'workstations', 'name': 'Crew Berths', 'kind': 'workstations',
+         'rect': [1, 11, 8, 17], 'anchor': [4, 12],
+         'color': '#a97c4b', 'label': 'Berths'},
+        {'id': 'archives', 'name': 'Map Hold', 'kind': 'archives',
+         'rect': [1, 1, 16, 5], 'anchor': [8, 3],
+         'color': '#8ea3b8', 'label': 'Map Hold'},
+        {'id': 'cargo', 'name': 'Cargo Hold', 'kind': 'lounge',
+         'rect': [10, 16, 17, 20], 'anchor': [13, 17],
+         'color': '#7d8f6a', 'label': 'Cargo'},
+        {'id': 'galley', 'name': 'Galley', 'kind': 'meeting',
+         'rect': [10, 11, 17, 14], 'anchor': [14, 13],
+         'color': '#c2703a', 'label': 'Galley'},
+        {'id': 'forecastle', 'name': 'Forecastle', 'kind': 'lounge',
+         'rect': [2, 9, 13, 10], 'anchor': [9, 10],
+         'color': '#5fa8a2', 'label': 'Forecastle'},
+        {'id': 'entrance', 'name': 'Gangway', 'kind': 'entrance',
+         'rect': [3, 18, 6, 20], 'anchor': [4, 20],
+         'color': '#98a7b8', 'label': 'Gangway'},
+    ]
+    seat_faces = (
+        [(x, 12, 'up') for x in range(2, 7)]
+        + [(x, 16, 'up') for x in range(2, 7)]
+        + [(x, 8, 'up') for x in range(4, 10)]
+        + [(x, 14, 'up') for x in range(12, 16)]
+        + [(x, 4, 'down') for x in (2, 3, 4, 13, 14, 15)]
+        + [(x, 3, 'up') for x in range(9, 14)]
+        + [(x, 10, 'up') for x in (3, 6, 12, 14)]
+    )
+    workstations = [
+        {'id': f'desk-{i + 1:02d}', 'name': f'Seat {i + 1:02d}',
+         'tile': {'x': x, 'y': y}, 'face': face, 'action': 'working'}
+        for i, (x, y, face) in enumerate(seat_faces)
+    ]
+    interactions = [
+        {'id': 'spawn-doormat', 'name': 'Gangway', 'tile': {'x': 4, 'y': 20},
+         'action': 'idle'},
+        {'id': 'grog-barrel', 'name': 'Grog Barrel', 'tile': {'x': 1, 'y': 10},
+         'action': 'drinking'},
+        {'id': 'signal-flags', 'name': 'Signal Flags',
+         'tile': {'x': 10, 'y': 7}, 'action': 'phone'},
+        {'id': 'chart-table', 'name': 'Chart Table', 'tile': {'x': 8, 'y': 4},
+         'action': 'reading'},
+    ]
+    furniture = (
+        [{'kind': 'shelf', 'tiles': [{'x': x, 'y': 1} for x in range(1, 9)]},
+         {'kind': 'shelf', 'tiles': [{'x': x, 'y': 2} for x in range(9, 14)]},
+         {'kind': 'counter', 'tiles': [{'x': x, 'y': 7} for x in range(4, 10)]},
+         {'kind': 'desk', 'tiles': [{'x': x, 'y': 3} for x in (2, 3, 4)]},
+         {'kind': 'desk', 'tiles': [{'x': x, 'y': 3} for x in (13, 14, 15)]},
+         {'kind': 'desk', 'tiles': [{'x': x, 'y': 13} for x in range(12, 16)]},
+         {'kind': 'desk', 'tiles': [{'x': x, 'y': 11} for x in range(2, 7)]},
+         {'kind': 'desk', 'tiles': [{'x': x, 'y': 15} for x in range(2, 7)]},
+         {'kind': 'crate', 'tiles': [{'x': 16, 'y': y} for y in (10, 11, 12)]},
+         {'kind': 'crate', 'tiles': [{'x': x, 'y': y}
+                                     for y in (17, 18) for x in (12, 13, 14, 15)]},
+         {'kind': 'barrel', 'tiles': [{'x': 10, 'y': 20}, {'x': 11, 'y': 20}]},
+         {'kind': 'rudder', 'tiles': [{'x': 9, 'y': y} for y in (14, 15, 16)]},
+         {'kind': 'helmsman', 'tiles': [{'x': 12, 'y': 19}]},
+         {'kind': 'plant', 'tiles': [{'x': 1, 'y': 6}, {'x': 15, 'y': 6},
+                                     {'x': 1, 'y': 19}, {'x': 13, 'y': 20}]},
+         {'kind': 'elevator', 'tiles': [{'x': x, 'y': 0}
+                                        for x in (3, 4, 5, 12, 13, 14)]}]
+    )
+    return c, rooms, workstations, interactions, furniture, {'x': 4, 'y': 20}
+
+
+def treehouse_layout():
+    """Woodland treehouse headquarters on an 18x22 grid."""
+    c = _base_grid()
+    _rect(c, 1, 1, 16, 1, 1)
+    # bark shelves along the trunk wall
+    _rect(c, 9, 2, 14, 2, 1)
+    # story-nook stumps + toadstool seats
+    _rect(c, 2, 3, 4, 3, 1)
+    _rect(c, 13, 3, 15, 3, 1)
+    for x in (2, 3, 4, 13, 14, 15):
+        c[4][x] = 3
+    # knot counter (rope-walk bar) across the mid platform
+    _rect(c, 4, 7, 9, 7, 1)
+    for x in range(4, 10):
+        c[8][x] = 3
+    # log wall splitting the hollow from the lookout deck
+    for y in (14, 15, 16):
+        c[y][9] = 1
+    # lookout deck platform
+    _rect(c, 12, 17, 15, 18, 1)
+    # branch desk pods
+    _rect(c, 2, 11, 6, 11, 1)
+    for x in range(2, 7):
+        c[12][x] = 3
+    _rect(c, 2, 15, 6, 15, 1)
+    for x in range(2, 7):
+        c[16][x] = 3
+    # vine rail along the far side
+    for y in (10, 11, 12):
+        c[y][16] = 1
+    # lost-boys long table + seats
+    _rect(c, 12, 13, 15, 13, 1)
+    for x in range(12, 16):
+        c[14][x] = 3
+    # waiting rocks
+    for x in (3, 6, 12, 14):
+        c[10][x] = 3
+    # standing stones
+    c[19][12] = 1
+    # trunk saplings
+    for x, y in ((1, 6), (15, 6), (1, 19), (7, 20), (13, 20)):
+        c[y][x] = 1
+    # toadstool perch + fern undergrowth
+    c[20][10] = 1
+    c[20][11] = 1
+    c[17][7] = 1
+    c[12][15] = 1
+
+    rooms = [
+        {'id': 'reception', 'name': 'Camp Hollow', 'kind': 'reception',
+         'rect': [2, 6, 16, 10], 'anchor': [6, 9],
+         'color': '#6faf5a', 'label': 'Camp'},
+        {'id': 'workstations', 'name': 'Branch Desks', 'kind': 'workstations',
+         'rect': [1, 11, 8, 17], 'anchor': [4, 12],
+         'color': '#b98a4e', 'label': 'Branches'},
+        {'id': 'archives', 'name': 'Story Nook', 'kind': 'archives',
+         'rect': [1, 1, 16, 5], 'anchor': [8, 3],
+         'color': '#8fb8a6', 'label': 'Stories'},
+        {'id': 'lookout', 'name': 'Lookout Deck', 'kind': 'lounge',
+         'rect': [10, 16, 17, 20], 'anchor': [13, 17],
+         'color': '#d8c04a', 'label': 'Lookout'},
+        {'id': 'play-hollow', 'name': 'Play Hollow', 'kind': 'meeting',
+         'rect': [10, 11, 17, 14], 'anchor': [14, 13],
+         'color': '#5a9ad0', 'label': 'Play'},
+        {'id': 'rope-walk', 'name': 'Rope Walk', 'kind': 'lounge',
+         'rect': [2, 9, 13, 10], 'anchor': [9, 10],
+         'color': '#7fb86a', 'label': 'Rope Walk'},
+        {'id': 'entrance', 'name': 'Ladder', 'kind': 'entrance',
+         'rect': [3, 18, 6, 20], 'anchor': [4, 20],
+         'color': '#98a7b8', 'label': 'Ladder'},
+    ]
+    seat_faces = (
+        [(x, 12, 'up') for x in range(2, 7)]
+        + [(x, 16, 'up') for x in range(2, 7)]
+        + [(x, 8, 'up') for x in range(4, 10)]
+        + [(x, 14, 'up') for x in range(12, 16)]
+        + [(x, 4, 'down') for x in (2, 3, 4, 13, 14, 15)]
+        + [(x, 3, 'up') for x in range(9, 15)]
+        + [(x, 10, 'up') for x in (3, 6, 12, 14)]
+    )
+    workstations = [
+        {'id': f'desk-{i + 1:02d}', 'name': f'Seat {i + 1:02d}',
+         'tile': {'x': x, 'y': y}, 'face': face, 'action': 'working'}
+        for i, (x, y, face) in enumerate(seat_faces)
+    ]
+    interactions = [
+        {'id': 'spawn-doormat', 'name': 'Ladder Top', 'tile': {'x': 4, 'y': 20},
+         'action': 'idle'},
+        {'id': 'watering-hollow', 'name': 'Watering Hollow',
+         'tile': {'x': 1, 'y': 10}, 'action': 'drinking'},
+        {'id': 'tinker-line', 'name': 'Tinker Line',
+         'tile': {'x': 10, 'y': 7}, 'action': 'phone'},
+        {'id': 'story-book', 'name': 'Story Book', 'tile': {'x': 8, 'y': 4},
+         'action': 'reading'},
+    ]
+    furniture = (
+        [{'kind': 'shelf', 'tiles': [{'x': x, 'y': 1} for x in range(1, 9)]},
+         {'kind': 'shelf', 'tiles': [{'x': x, 'y': 2} for x in range(9, 15)]},
+         {'kind': 'counter', 'tiles': [{'x': x, 'y': 7} for x in range(4, 10)]},
+         {'kind': 'desk', 'tiles': [{'x': x, 'y': 3} for x in (2, 3, 4)]},
+         {'kind': 'desk', 'tiles': [{'x': x, 'y': 3} for x in (13, 14, 15)]},
+         {'kind': 'desk', 'tiles': [{'x': x, 'y': 13} for x in range(12, 16)]},
+         {'kind': 'desk', 'tiles': [{'x': x, 'y': 11} for x in range(2, 7)]},
+         {'kind': 'desk', 'tiles': [{'x': x, 'y': 15} for x in range(2, 7)]},
+         {'kind': 'crate', 'tiles': [{'x': 16, 'y': y} for y in (10, 11, 12)]},
+         {'kind': 'crate', 'tiles': [{'x': x, 'y': y}
+                                     for y in (17, 18) for x in (12, 13, 14, 15)]},
+         {'kind': 'perch', 'tiles': [{'x': 11, 'y': 20}, {'x': 10, 'y': 20}]},
+         {'kind': 'partition', 'tiles': [{'x': 9, 'y': y}
+                                         for y in (14, 15, 16)]},
+         {'kind': 'helmsman', 'tiles': [{'x': 12, 'y': 19}]},
+         {'kind': 'tree', 'tiles': [{'x': 1, 'y': 6}, {'x': 15, 'y': 6},
+                                    {'x': 1, 'y': 19}, {'x': 7, 'y': 20},
+                                    {'x': 13, 'y': 20}]},
+         {'kind': 'plant', 'tiles': [{'x': 7, 'y': 17}, {'x': 15, 'y': 12}]},
+         {'kind': 'elevator', 'tiles': [{'x': x, 'y': 0}
+                                        for x in (3, 4, 5, 12, 13, 14)]}]
+    )
+    return c, rooms, workstations, interactions, furniture, {'x': 4, 'y': 20}
+
+
+LAYOUTS = {
+    'continental': continental_layout,
+    'mechanic-shop': mechanic_layout,
+    'pirate-ship': pirate_layout,
+    'lost-boys-treehouse': treehouse_layout,
+}
 
 
 # ---------------------------------------------------------------- renderer
@@ -456,10 +822,39 @@ def render_environment(colls, furniture, spawn, interactions, rooms, pal,
 # ---------------------------------------------------------------- manifest
 
 
-def build_continental_manifest():
+PACK_META = {
+    'continental': {
+        'name': 'Continental', 'style': 'art-deco',
+        'blurb': 'Art Deco concierge headquarters — brass, teal velvet '
+                 'and black lacquer around a marble concierge hall.',
+        'mood': 'Art Deco concierge headquarters',
+    },
+    'mechanic-shop': {
+        'name': 'Mechanic Shop', 'style': 'industrial',
+        'blurb': 'Industrial garage and engineering office — corrugated '
+                 'steel, workbenches and a vehicle bay under amber lamps.',
+        'mood': 'Industrial garage and engineering office',
+    },
+    'pirate-ship': {
+        'name': 'Pirate Ship', 'style': 'nautical',
+        'blurb': 'Nautical headquarters aboard a timber ship — berth desks, '
+                 'a galley, cargo hold and a helm at the quarterdeck.',
+        'mood': 'Nautical ship headquarters',
+    },
+    'lost-boys-treehouse': {
+        'name': 'Lost Boys Treehouse', 'style': 'woodland',
+        'blurb': 'Woodland treehouse headquarters — branch desks around a '
+                 'campfire hollow beneath the boughs.',
+        'mood': 'Woodland treehouse headquarters',
+    },
+}
+
+
+def build_pack(pack_id):
     """Returns ({manifest}, raw_rooms) — raw rooms carry rect/color for the
     background renderer; the manifest carries the schema-1 room shape."""
-    c, rooms, workstations, interactions, furniture, spawn = continental_layout()
+    c, rooms, workstations, interactions, furniture, spawn = LAYOUTS[pack_id]()
+    meta = PACK_META[pack_id]
     # flatten to the schema-1 shape (validated by environments.js):
     # rooms carry [x,y] tile lists, workstations/interactions flat tiles,
     # spawn an [x,y] pair.
@@ -485,13 +880,12 @@ def build_continental_manifest():
                               'y': i['tile']['y'], 'action': i['action'],
                               'name': i['name']} for i in interactions]
     return {
-        'id': 'continental',
-        'name': 'Continental',
+        'id': pack_id,
+        'name': meta['name'],
         'schema': SCHEMA_VERSION,
-        'style': 'art-deco',
-        'blurb': 'Art Deco concierge headquarters — brass, teal velvet '
-                 'and black lacquer around a marble concierge hall.',
-        'atmosphere': {'mood': 'Art Deco concierge headquarters'},
+        'style': meta['style'],
+        'blurb': meta['blurb'],
+        'atmosphere': {'mood': meta['mood']},
         'grid': {'cols': GRID_COLS, 'rows': GRID_ROWS, 'tile': 32},
         'presentation': {
             'projection': 'isometric', 'tileW': TILE_W, 'tileH': TILE_H,
@@ -505,7 +899,8 @@ def build_continental_manifest():
         'placement': {'reception': 'reception', 'workstations': 'workstations',
                       'archives': 'archives'},
         'spawn': [spawn['x'], spawn['y']],
-        'assets': {'background': '/assets/environments/continental/background.png'},
+        'assets': {'background': f'/assets/environments/{pack_id}/'
+                                 'background.png'},
         'sprites': {'sheet': '/assets/characters/char_0.png'},
     }, rooms
 
@@ -538,11 +933,7 @@ def main():
     for pack_id in sorted(LAYOUTS):
         if only and pack_id != only:
             continue
-        if pack_id == 'continental':
-            m, raw_rooms = build_continental_manifest()
-        else:
-            print(f"skipping {pack_id}: layout builder not wired yet")
-            continue
+        m, raw_rooms = build_pack(pack_id)
         status = write_pack(m, raw_rooms, check_only=args.check)
         print(f"{pack_id}: {status}")
         counts.append((pack_id, status))

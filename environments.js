@@ -23,7 +23,7 @@ const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
 const FURNITURE_H = {
   desk: 48, console: 42, counter: 52, bar: 52, crate: 38,
   barrel: 32, planter: 32, lantern: 42, helmsman: 58,
-  perch: 42, rope: 26, rudder: 60, sign: 56, partition: 96,
+  perch: 42, rope: 26, rudder: 60, sign: 56, partition: 72,
 };
 const TALL_KINDS = ['wall', 'shelf', 'elevator', 'medallion', 'arch'];
 const FURNITURE_KINDS = [
