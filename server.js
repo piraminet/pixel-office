@@ -793,8 +793,9 @@ app.get('/api/messages', (req, res) => {
 
 // === Agent runtime presence (Hermes + OpenClaw) ===
 
-// Live roster of real agent runtimes; read-only, cached 5s in integrations.js
-app.get('/api/presence', async (req, res) => {
+// Live roster of real agent runtimes; read-only, cached 5s in integrations.js.
+// Auth-gated (G2): presence includes session ids/pids — anonymous callers get 401.
+app.get('/api/presence', requireAuth, async (req, res) => {
   try {
     res.json(await integrations.getPresence());
   } catch (err) {

@@ -144,8 +144,10 @@ const stopServer = () => new Promise((resolve) => {
   check('POST /api/config unauthenticated → 401 (G2 remediation of S-05)', r.status === 401);
   r = await probe('POST /api/config (bearer token)', 'POST', '/api/config', { agents: [], rooms: [] }, { Authorization: `Bearer ${TOKEN}` });
   check('POST /api/config with bearer token → 200 (automation path)', r.status === 200);
-  r = await probe('GET /api/presence', 'GET', '/api/presence');
-  check('GET /api/presence → 200 with hermes/openclaw keys', r.status === 200 && !!JSON.parse(r.body).hermes);
+  r = await probe('GET /api/presence (unauth)', 'GET', '/api/presence');
+  check('GET /api/presence unauthenticated → 401 (G2, session ids gated)', r.status === 401);
+  r = await probe('GET /api/presence (bearer token)', 'GET', '/api/presence', null, { Authorization: `Bearer ${TOKEN}` });
+  check('GET /api/presence authed → 200 with hermes/openclaw keys', r.status === 200 && !!JSON.parse(r.body).hermes);
   r = await probe('GET /api/briefing (unauth)', 'GET', '/api/briefing');
   check('GET /api/briefing unauthenticated → 401 (G2, internal aggregate)', r.status === 401);
   r = await probe('GET /api/briefing (token, offline integrations)', 'GET', '/api/briefing', null, { Authorization: `Bearer ${TOKEN}` });

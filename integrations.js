@@ -26,17 +26,33 @@ const pidAlive = (pid) => {
   }
 };
 
+// Container consumers can't verify host PIDs (separate PID namespace), so they
+// opt into HERMES_PRESENCE_TRUST_FILES=1: online-state + liveness come from the
+// files themselves, bounded by mtime freshness (active_sessions.json and
+// gateway_state.json are rewritten by their owners during operation).
+const TRUST_FILE_MODE = () => process.env.HERMES_PRESENCE_TRUST_FILES === '1';
+const FRESHNESS_MS = 5 * 60 * 1000;
+const fileFresh = (filePath) => {
+  try {
+    return Date.now() - fs.statSync(filePath).mtimeMs < FRESHNESS_MS;
+  } catch (e) {
+    return false;
+  }
+};
+
 // Hermes: one entry per live session. Sources of truth:
 //   $HERMES_HOME/runtime/active_sessions.json — per-process session leases (pid, surface, session_id)
 //   $HERMES_HOME/gateway_state.json           — gateway daemon state + channel platforms
 const hermesPresence = () => {
   const home = hermesHome();
-  const sessionsFile = readJSON(path.join(home, 'runtime', 'active_sessions.json'));
-  const gatewayFile = readJSON(path.join(home, 'gateway_state.json'));
+  const sessionsPath = path.join(home, 'runtime', 'active_sessions.json');
+  const gatewayPath = path.join(home, 'gateway_state.json');
+  const sessionsFile = readJSON(sessionsPath);
+  const gatewayFile = readJSON(gatewayPath);
 
   const entries = (sessionsFile && Array.isArray(sessionsFile.entries)) ? sessionsFile.entries : [];
   const live = entries
-    .filter(s => pidAlive(s.pid))
+    .filter(s => TRUST_FILE_MODE() ? fileFresh(sessionsPath) : pidAlive(s.pid))
     .map(s => ({
       session_id: s.session_id,
       surface: s.surface,
@@ -46,7 +62,8 @@ const hermesPresence = () => {
 
   const gatewayState = gatewayFile ? gatewayFile.gateway_state : null;
   const gatewayPid = gatewayFile ? gatewayFile.pid : null;
-  const gateway = gatewayState === 'running' && pidAlive(gatewayPid);
+  const gateway = gatewayState === 'running' &&
+    (TRUST_FILE_MODE() ? fileFresh(gatewayPath) : pidAlive(gatewayPid));
 
   const platforms = Object.entries((gatewayFile && gatewayFile.platforms) || {})
     .filter(([, p]) => p && p.state === 'connected')
